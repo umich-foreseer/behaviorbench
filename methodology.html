@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ranking Methodology</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a2e;
+    --accent: #4361ee;
+    --accent-light: #e8ecff;
+    --border: #e0e0e0;
+    --header-bg: #f8f9fa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.7;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #6b7280; margin-bottom: 2rem; font-size: 0.95rem; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+
+  h2 { font-size: 1.2rem; margin-top: 2rem; margin-bottom: 0.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.3rem; }
+  h3 { font-size: 1rem; margin-top: 1.2rem; margin-bottom: 0.3rem; }
+
+  p, li { font-size: 0.9rem; margin-bottom: 0.5rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+
+  code {
+    background: var(--header-bg);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+  }
+
+  .formula {
+    background: var(--header-bg);
+    border-left: 3px solid var(--accent);
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+    font-family: "Courier New", monospace;
+    font-size: 0.88rem;
+    border-radius: 0 4px 4px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 0.75rem 0 1rem;
+  }
+  th, td {
+    padding: 0.45rem 0.65rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { background: var(--header-bg); font-weight: 600; }
+
+  @media (max-width: 768px) {
+    body { padding: 1rem; }
+    h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Ranking Methodology</h1>
+<p class="subtitle"><a href="index.html">&larr; Back to Leaderboard</a></p>
+
+<h2>Aggregating across tasks: HELM-style win rate</h2>
+<p>The per-task metrics are on different scales and directions, so directly averaging them is not meaningful. Following <a href="https://crfm.stanford.edu/helm/" style="color:var(--accent)">HELM</a>, each task is reduced to pairwise comparisons:</p>
+<div class="formula">WR<sub>task</sub> = (models beaten + 0.5 &times; models tied) / (N &minus; 1)</div>
+<p>where <code>N</code> is the number of models with data on that task. A model's <strong>mean win rate</strong> is the mean of its per-task win rates across the tasks in scope. The Individual and Distributional columns on the leaderboard are this mean computed over the corresponding subset of tasks; the overall column is their average.</p>
+
+<h2>ELO Rating (alternative ranking)</h2>
+<p>Each task generates pairwise matchups (ties counted as draws). Matchups are processed with K&nbsp;=&nbsp;32 and initial rating 1500, shuffled 200 times with a fixed seed and averaged. Reported separately for Individual and Distributional.</p>
+
+</body>
+</html>

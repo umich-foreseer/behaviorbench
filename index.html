@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BehaviorBench Leaderboards</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a2e;
+    --accent: #4361ee;
+    --accent-light: #e8ecff;
+    --border: #e0e0e0;
+    --row-hover: #f5f7ff;
+    --best-bg: #e6f9e6;
+    --best-fg: #1a7a1a;
+    --poor-bg: #fde8e8;
+    --poor-fg: #b91c1c;
+    --missing: #999;
+    --befm-bg: #f0f4ff;
+    --header-bg: #f8f9fa;
+    --tab-active: #4361ee;
+    --tab-inactive: #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #6b7280; margin-bottom: 1.5rem; font-size: 0.95rem; }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--tab-inactive);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--fg); }
+  .tab.active {
+    color: var(--tab-active);
+    border-bottom-color: var(--tab-active);
+  }
+
+  .info-bar {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    color: #6b7280;
+    flex-wrap: wrap;
+  }
+  .info-bar span { display: flex; align-items: center; gap: 0.3rem; }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+  }
+  th, td {
+    padding: 0.55rem 0.75rem;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  td { background: var(--bg); position: relative; z-index: 0; }
+  th {
+    background: var(--header-bg);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { background: #eef0f4; }
+  th .sort-arrow { font-size: 0.7rem; margin-left: 0.2rem; opacity: 0.4; }
+  th.sorted .sort-arrow { opacity: 1; }
+
+  /* Sticky columns use classes, not nth-child (safe for multi-row headers) */
+  .sc-rank, .sc-model, .sc-score, .sc-indiv, .sc-distrib {
+    position: sticky;
+    z-index: 2;
+    background: var(--bg);
+  }
+  .sc-rank  { left: 0; text-align: center; width: 3rem; }
+  .sc-model { left: 3rem; text-align: left; min-width: 12rem; max-width: 12rem; white-space: normal; line-height: 1.3; }
+  .sc-score { left: 15rem; min-width: 9rem; border-right: 2px solid var(--border); }
+  .sc-indiv { left: 15rem; min-width: 9rem; }
+  .sc-distrib { left: 24rem; min-width: 9rem; border-right: 2px solid var(--border); }
+  #main-table .sc-score { border-right: none; }
+  #main-table .sc-indiv { left: 24rem; }
+  #main-table .sc-distrib { left: 33rem; }
+
+  th.sc-rank, th.sc-model, th.sc-score, th.sc-indiv, th.sc-distrib {
+    z-index: 5;
+    background: var(--header-bg);
+  }
+  th.sc-rank:hover, th.sc-model:hover, th.sc-score:hover, th.sc-indiv:hover, th.sc-distrib:hover {
+    background: #eef0f4;
+  }
+
+  /* Hover / BeFM backgrounds for sticky body cells */
+  tr:hover .sc-rank, tr:hover .sc-model, tr:hover .sc-score,
+  tr:hover .sc-indiv, tr:hover .sc-distrib { background: var(--row-hover); }
+  tr.befm .sc-rank, tr.befm .sc-model, tr.befm .sc-score,
+  tr.befm .sc-indiv, tr.befm .sc-distrib { background: var(--befm-bg); }
+  tr.befm:hover .sc-rank, tr.befm:hover .sc-model, tr.befm:hover .sc-score,
+  tr.befm:hover .sc-indiv, tr.befm:hover .sc-distrib { background: #e0e8ff; }
+
+  tr:hover td { background: var(--row-hover); }
+  tr.befm td { background: var(--befm-bg); }
+  tr.befm:hover td { background: #e0e8ff; }
+
+  .model-name { font-weight: 500; }
+  .family-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  .family-tag.befm { background: #dbeafe; color: #1e40af; }
+  .family-tag.effort { background: #f3f4f6; color: #4b5563; font-weight: 500; }
+
+  .cell-best { font-weight: 700; color: var(--best-fg); }
+  .cell-worst { color: var(--poor-fg); }
+  .cell-missing { color: var(--missing); font-style: italic; }
+  .cell-flagged { cursor: help; }
+  .cell-flagged sup { color: #b45309; font-size: 0.7em; margin-left: 1px; }
+
+  .win-bar {
+    display: inline-block;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+    min-width: 2px;
+  }
+
+  .metric-dir { font-size: 0.7rem; font-weight: 400; color: #6b7280; }
+  .th-sub { display: block; font-size: 0.7rem; font-weight: 400; color: #888; }
+
+  .legend {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.8;
+  }
+  .legend strong { color: var(--fg); }
+
+  /* Aggregated vs detail column styling */
+  .col-agg { background: #eef2ff !important; }
+  tr:hover .col-agg { background: #e0e8ff !important; }
+  tr.befm .col-agg { background: #dde4ff !important; }
+  tr.befm:hover .col-agg { background: #d0dcff !important; }
+  th.col-agg { background: #e0e6f8 !important; }
+  th.col-agg:hover { background: #d4dcf0 !important; }
+
+  /* Category detail table: two-row header positioning */
+  #cat-table thead tr:first-child th { top: 0; }
+  #cat-table thead tr:nth-child(2) th { top: 2.1rem; }
+  #cat-table thead tr:first-child th[colspan] { border-left: 1px solid var(--border); }
+
+  .detail-toggle {
+    display: inline-block;
+    margin-left: 1rem;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #f9fafb;
+    cursor: pointer;
+    color: var(--tab-inactive);
+    transition: all 0.15s;
+  }
+  .detail-toggle:hover { background: #eef0f4; color: var(--fg); }
+  .detail-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .col-detail-hidden { display: none; }
+
+  .ranking-toggle {
+    display: inline-flex;
+    gap: 0;
+    background: #f1f3f5;
+    border-radius: 20px;
+    padding: 2px;
+    margin-bottom: 1rem;
+  }
+  .ranking-toggle .toggle-btn {
+    padding: 0.3rem 0.85rem;
+    border: none;
+    background: none;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--tab-inactive);
+    border-radius: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ranking-toggle .toggle-btn:hover { color: var(--fg); }
+  .ranking-toggle .toggle-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(67,97,238,0.3);
+  }
+
+  .action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.85rem 0 0 0;
+  }
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.95rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #f9fafb;
+    color: var(--fg);
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .action-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(67,97,238,0.12);
+  }
+  .action-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+  }
+  .action-btn .placeholder-tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 0.2rem;
+  }
+
+  #ranking-select {
+    font-size: 0.82rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #f9fafb;
+    color: var(--fg);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #ranking-select:hover { border-color: var(--accent); }
+  #ranking-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(67,97,238,0.15); }
+
+  .hero {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: 2.1rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.35rem;
+    background: linear-gradient(90deg, var(--accent) 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--accent);
+  }
+  .hero .subtitle {
+    margin: 0;
+    font-size: 0.92rem;
+    text-align: center;
+  }
+  .hero .nav-internal a:hover { text-decoration: underline; }
+  .hero-version-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .hero-figure {
+    margin: 1.4rem auto 1.6rem auto;
+    max-width: 640px;
+    text-align: center;
+  }
+  .hero-figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(67,97,238,0.06);
+    border: 1px solid var(--border);
+  }
+  .hero-figure figcaption {
+    color: #6b7280;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+  }
+  .ranking-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.18rem 0.7rem;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-left: 0.35rem;
+  }
+  .ranking-chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+  }
+  @media (max-width: 700px) {
+    .hero-version-toggle { position: static; margin-top: 0.5rem; justify-content: center; }
+  }
+
+  .header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 1rem; }
+    h1 { font-size: 1.4rem; }
+    .tab { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>BehaviorBench Leaderboards</h1>
+  <p class="subtitle">A benchmark for foundation models on behavioral-science tasks, evaluated at the individual and distributional levels.</p>
+  <div class="action-bar" aria-label="External resources">
+    <a class="action-btn" href="#" title="Paper (placeholder)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+      Paper
+      <span class="placeholder-tag">TBD</span>
+    </a>
+    <a class="action-btn" href="https://huggingface.co/befm/" title="Models on Hugging Face" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="0.8" fill="currentColor"/><circle cx="15" cy="10" r="0.8" fill="currentColor"/></svg>
+      Models
+    </a>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-tab="overall">Overall</button>
+  <button class="tab" data-tab="individual">Individual Level</button>
+  <button class="tab" data-tab="distributional">Distributional Level</button>
+</div>
+
+<div id="ranking-method-wrap" style="margin-bottom:1rem;display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+  <span style="font-size:0.82rem;font-weight:500;color:#6b7280;">Ranking method:</span>
+  <div class="ranking-toggle" id="ranking-toggle">
+    <button class="toggle-btn active" data-ranking="winrate">Mean Win Rate</button>
+    <button class="toggle-btn" data-ranking="elo">ELO Rating</button>
+  </div>
+</div>
+
+<div id="content"></div>
+
+<div class="legend" id="legend">
+  <strong>Ranking:</strong> <span id="legend-method">Mean Win Rate (HELM-style).</span> <a href="methodology.html" style="color:var(--accent);">See full methodology &rarr;</a><br>
+  <strong>Tags:</strong> the <span class="family-tag effort" style="margin-left:0;">reasoning: high</span> chip next to a model name shows the <code>reasoning_effort</code> used for evaluation. It applies only to reasoning models.
+</div>
+
+<section class="citation-block" aria-labelledby="citation-heading">
+  <div class="citation-header">
+    <h2 id="citation-heading">Citation</h2>
+    <button type="button" class="copy-btn" id="copy-bibtex" aria-label="Copy BibTeX">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span class="copy-btn-text">Copy BibTeX</span>
+    </button>
+  </div>
+  <p class="citation-note">If you use BehaviorBench or BeFM in your work, please consider citing:</p>
+  <pre id="bibtex-block">@misc{behaviorbench2026,
+  title  = {{BehaviorBench}: Benchmarking Foundation Models for Behavioral Science Tasks},
+  author = {Huang, Jin and Xie, Yutong and Song, Wanli and Zhang, Xingjian and Yuan, Walter and Jackson, Matthew O. and Mei, Qiaozhu},
+  year   = {2026},
+  note   = {Preprint coming soon}
+}</pre>
+</section>
+
+<style>
+  .citation-block {
+    margin: 2.5rem 0 1rem 0;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #f9fafb 0%, #ffffff 100%);
+  }
+  .citation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+  .citation-block h2 {
+    font-size: 1.05rem;
+    color: var(--fg);
+    margin: 0;
+  }
+  .citation-note {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin: 0 0 0.7rem 0;
+  }
+  .citation-block pre {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 7px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--fg);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+  .copy-btn svg { width: 13px; height: 13px; stroke-width: 2; }
+  .copy-btn.copied {
+    border-color: var(--best-fg);
+    color: var(--best-fg);
+    background: var(--best-bg);
+  }
+</style>
+
+<script>
+document.getElementById("copy-bibtex").addEventListener("click", e => {
+  const btn = e.currentTarget;
+  const text = document.getElementById("bibtex-block").textContent;
+  const label = btn.querySelector(".copy-btn-text");
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add("copied");
+    label.textContent = "Copied!";
+    setTimeout(() => { btn.classList.remove("copied"); label.textContent = "Copy BibTeX"; }, 1500);
+  }).catch(() => {
+    label.textContent = "Press Ctrl+C";
+  });
+});
+</script>
+
+<script src="data.js?v=3"></script>
+<script>
+// Public version: single dataset, Be.FM is always the 5-run mean.
+const DATASETS = {
+  public: { label: "BehaviorBench", data: LEADERBOARD_DATA },
+};
+const DEFAULT_DATASET = "public";
+
+// Default reasoning-effort labels per model id (from slide 04162026).
+// Non-reasoning models (gpt4_1, claude_haiku, deepseek_v3_2, local) are absent.
+const REASONING_EFFORT_DEFAULTS = {
+  gpt5_4: "none",
+  gpt5_4_mini: "none",
+  claude_opus: "high",
+  claude_sonnet: "high",
+  gemini_flash_lite: "minimal",
+  gemini_pro: "high",
+};
+
+// Strip temperature & "(5 runs, mean)" suffixes; split the reasoning-effort
+// level into its own field so the table renderer can show it as a compact
+// chip rather than letting it bloat the model-name column; canonicalize
+// Be.FM* names to match the paper. Returns { name, effort }.
+function normalizeModelName(id, name) {
+  let out = name.replace(/\s*\(T=[^)]*\)/g, "").trim();
+  // Drop the "(5 runs, mean)" / "(5 run mean)" suffix — 5-run mean is the default in public mode.
+  out = out.replace(/\s*\(\s*5\s*runs?[^)]*\)\s*$/i, "").trim();
+  // Rewrite a bare effort-level suffix like "(high)" to "(reasoning_effort=high)".
+  out = out.replace(
+    /\(\s*(none|minimal|low|medium|high|max|xhigh)\s*\)\s*$/i,
+    (_, lvl) => `(reasoning_effort=${lvl.toLowerCase()})`
+  );
+  const hasEffortSuffix = /\(reasoning_effort=/.test(out);
+  if (REASONING_EFFORT_DEFAULTS[id] && !hasEffortSuffix) {
+    out = `${out} (reasoning_effort=${REASONING_EFFORT_DEFAULTS[id]})`;
+  }
+  // Canonicalize Be.FM family naming to match the paper:
+  //   "BeFM1.5-4B" → "Be.FM-1.5-4B", "BeFM1-8B" → "Be.FM-1-8B".
+  out = out.replace(/\bBeFM(\d+(?:\.\d+)?)(-\d+B)/g, "Be.FM-$1$2");
+  // Detach the reasoning-effort suffix so it can render as a chip beside the name.
+  let effort = null;
+  const effortMatch = out.match(/^(.*?)\s*\(reasoning_effort=([^)]+)\)\s*$/);
+  if (effortMatch) {
+    out = effortMatch[1].trim();
+    effort = effortMatch[2].trim();
+  }
+  return { name: out, effort };
+}
+
+// Collapse the "<id>_5runs" sibling into its base BeFM entry based on mode.
+// mode: "single" keeps the base run; "mean" swaps in the 5-run mean values.
+// In both cases the "_5runs" entries themselves are hidden from the view.
+function applyBefmRunMode(raw, mode) {
+  const fiveRunMeta = {};
+  raw.models.forEach(m => {
+    if (m.id.endsWith("_5runs")) {
+      fiveRunMeta[m.id.replace(/_5runs$/, "")] = m;
+    }
+  });
+
+  const models = raw.models
+    .filter(m => !m.id.endsWith("_5runs"))
+    .map(m => {
+      const srcName = (mode === "mean" && fiveRunMeta[m.id])
+        ? fiveRunMeta[m.id].name
+        : m.name;
+      const norm = normalizeModelName(m.id, srcName);
+      return { ...m, name: norm.name, effort: norm.effort };
+    });
+
+  const results = {};
+  Object.keys(raw.results).forEach(k => {
+    if (k.endsWith("_5runs")) return;
+    const fiveKey = k + "_5runs";
+    results[k] = (mode === "mean" && raw.results[fiveKey]) ? raw.results[fiveKey] : raw.results[k];
+  });
+
+  const flags = {};
+  Object.keys(raw.flags || {}).forEach(k => {
+    if (!k.endsWith("_5runs")) flags[k] = raw.flags[k];
+  });
+
+  return { ...raw, models, results, flags };
+}
+
+let befmRunMode = "mean";
+
+// Default scenario filters: Merge Push/Pull is ON by default so the 5
+// MobLab econ aggregates always include push/pull as a 9th game. Declared
+// in this script block (before the initial buildLeaderboardData call) so
+// the first render already reflects the merged numbers.
+var scenarioFilters = new Set(["merge_pushpull"]);
+
+// MobLab aggregate scenario -> push/pull field + n-count field used when merging.
+// Merged value = (old_avg * n + pp_value) / (n + 1). When push/pull is flagged
+// unreliable (parse failure > threshold), the merge still happens and the
+// merged cell is annotated with a dagger via mergedUnreliable (matches the
+// paper econ summary table's dagger policy). Declared in block 1 so the
+// initial buildLeaderboardData() call below can invoke applyMergePushpull.
+const MERGE_TARGETS = {
+  ml_multiround_mae: { pp: "ho_pp_multiround_mae", nKey: "ml_multiround_mae_n" },
+  ml_acrossgame_mae: { pp: "ho_pp_acrossgame_mae", nKey: "ml_acrossgame_mae_n" },
+  ml_multiround:     { pp: "ho_pp_multiround_wd",  nKey: "ml_multiround_n" },
+  ml_acrossgame:     { pp: "ho_pp_acrossgame_wd",  nKey: "ml_acrossgame_n" },
+  ml_game:           { pp: "ho_pushpull",          nKey: "ml_game_n" },
+};
+
+// Return a data object with the 5 MobLab aggregates replaced by (n+1)-game
+// means that include push/pull. Also emits a mergedUnreliable sidecar so the
+// renderer can mark cells whose push/pull contribution came from a run with
+// parse-failure rate above the threshold (data.flags[mid][cfg.pp] != null).
+function applyMergePushpull(data) {
+  const newResults = {};
+  const mergedUnreliable = {};
+  for (const mid of Object.keys(data.results)) {
+    const row = data.results[mid];
+    const modelFlags = (data.flags && data.flags[mid]) || {};
+    const newRow = { ...row };
+    for (const [sid, cfg] of Object.entries(MERGE_TARGETS)) {
+      const oldAvg = row[sid];
+      const n = row[cfg.nKey];
+      const ppVal = row[cfg.pp];
+      if (oldAvg == null || n == null || ppVal == null) continue;
+      newRow[sid] = (oldAvg * n + ppVal) / (n + 1);
+      if (modelFlags[cfg.pp] != null) {
+        if (!mergedUnreliable[mid]) mergedUnreliable[mid] = {};
+        mergedUnreliable[mid][sid] = modelFlags[cfg.pp];
+      }
+    }
+    newResults[mid] = newRow;
+  }
+  return { ...data, results: newResults, mergedUnreliable };
+}
+
+// Compose BeFM run-mode collapse and (optional) push/pull merge into a single
+// data object. Called wherever LEADERBOARD_DATA is rebuilt; reads
+// scenarioFilters to decide whether to fold in push/pull.
+function buildLeaderboardData(datasetKey, runMode) {
+  let out = applyBefmRunMode(DATASETS[datasetKey].data, runMode);
+  if (scenarioFilters.has("merge_pushpull")) {
+    out = applyMergePushpull(out);
+  }
+  return out;
+}
+
+LEADERBOARD_DATA = buildLeaderboardData(DEFAULT_DATASET, befmRunMode);
+</script>
+<script>
+"use strict";
+
+// ── State ──
+
+let currentDataset = DEFAULT_DATASET;
+let rankingMethod = "winrate";
+let viewMode = "level"; // "level" or "category"
+let showCatDetails = false;
+// scenarioFilters (subset of "no_acrossgame", "merge_pushpull") is declared
+// in the first <script> block as a var so it is visible before the initial
+// buildLeaderboardData call that happens in that block.
+
+const ACROSSGAME_IDS = new Set([
+  "ml_acrossgame_mae", "ml_acrossgame",
+  "ho_pp_acrossgame_f1", "ho_pp_acrossgame_wd",
+]);
+
+// Standalone push/pull scenarios hidden when "Merge Push/Pull" is on; they
+// get folded into the 5 MobLab aggregates as a 9th game instead.
+const PUSHPULL_IDS = new Set([
+  "ho_pp_multiround_f1", "ho_pp_acrossgame_f1",
+  "ho_pushpull", "ho_pp_multiround_wd", "ho_pp_acrossgame_wd",
+]);
+
+// MERGE_TARGETS and applyMergePushpull are declared in the first <script>
+// block (so the initial buildLeaderboardData call can use them).
+
+function filterScenarios(scenarios) {
+  let result = scenarios;
+  if (scenarioFilters.has("no_acrossgame")) {
+    result = result.filter(s => !ACROSSGAME_IDS.has(s.id));
+  }
+  if (scenarioFilters.has("merge_pushpull")) {
+    result = result.filter(s => !PUSHPULL_IDS.has(s.id));
+  }
+  return result;
+}
+
+// ── Levels ──
+
+const levels = ["individual", "distributional"];
+const levelNames = {
+  individual: "Individual Level",
+  distributional: "Distributional Level"
+};
+
+function getLevelScenarios(level) {
+  return filterScenarios(LEADERBOARD_DATA.scenarios.filter(s => s.level === level));
+}
+
+// ── Categories (capability-based, from Table 1) ──
+
+const categories = ["predict_behavior", "infer_characteristics", "strategic_reasoning", "knowledge_reasoning"];
+const categoryNames = {
+  predict_behavior: "Behavior Prediction and Simulation",
+  infer_characteristics: "Subject-Trait Inference",
+  strategic_reasoning: "Strategic Decision-Making",
+  knowledge_reasoning: "Knowledge Application"
+};
+const categoryShortNames = {
+  predict_behavior: "Behavior Prediction and Simulation",
+  infer_characteristics: "Subject-Trait Inference",
+  strategic_reasoning: "Strategic Decision-Making",
+  knowledge_reasoning: "Knowledge Application"
+};
+
+function getCategoryScenarios(cat) {
+  return filterScenarios(LEADERBOARD_DATA.scenarios.filter(s => s.category === cat));
+}
+
+function getCategoryLevelScenarios(cat, level) {
+  return filterScenarios(LEADERBOARD_DATA.scenarios.filter(s => s.category === cat && s.level === level));
+}
+
+// ── Compute win rates ──
+
+// Return result value for ranking; null if missing or flagged (unreliable).
+function rankVal(data, modelId, scenarioId) {
+  const v = data.results[modelId]?.[scenarioId];
+  if (v == null) return null;
+  if (data.flags?.[modelId]?.[scenarioId] != null) return null;
+  return v;
+}
+
+function computeWinRates(data) {
+  const { models, scenarios, results } = data;
+  const winRates = {};
+  models.forEach(m => { winRates[m.id] = {}; });
+
+  scenarios.forEach(s => {
+    const entries = [];
+    models.forEach(m => {
+      const val = rankVal(data, m.id, s.id);
+      if (val != null) entries.push({ id: m.id, val });
+    });
+    if (entries.length < 2) {
+      entries.forEach(e => { winRates[e.id][s.id] = null; });
+      return;
+    }
+
+    entries.sort((a, b) => s.direction === "lower" ? a.val - b.val : b.val - a.val);
+
+    const n = entries.length;
+    let i = 0;
+    while (i < n) {
+      let j = i;
+      while (j < n && entries[j].val === entries[i].val) j++;
+      const beaten = n - j;
+      const tiedWith = j - i - 1;
+      const wr = (beaten + 0.5 * tiedWith) / (n - 1);
+      for (let k = i; k < j; k++) {
+        winRates[entries[k].id][s.id] = wr;
+      }
+      i = j;
+    }
+  });
+
+  return winRates;
+}
+
+// ── Compute average ranks ──
+
+function computeAvgRanks(data) {
+  const { models, scenarios, results } = data;
+  const ranks = {};
+  models.forEach(m => { ranks[m.id] = {}; });
+
+  scenarios.forEach(s => {
+    const entries = [];
+    models.forEach(m => {
+      const val = rankVal(data, m.id, s.id);
+      if (val != null) entries.push({ id: m.id, val });
+    });
+    if (entries.length < 1) return;
+
+    entries.sort((a, b) => s.direction === "lower" ? a.val - b.val : b.val - a.val);
+
+    const n = entries.length;
+    let i = 0;
+    while (i < n) {
+      let j = i;
+      while (j < n && entries[j].val === entries[i].val) j++;
+      const avgRank = (i + 1 + j) / 2;
+      for (let k = i; k < j; k++) {
+        ranks[entries[k].id][s.id] = avgRank;
+      }
+      i = j;
+    }
+  });
+
+  return ranks;
+}
+
+function avgScore(scoreMap, modelId, scenarioList) {
+  const vals = scenarioList
+    .map(s => scoreMap[modelId][s.id])
+    .filter(v => v != null);
+  if (vals.length === 0) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+// ── Build pairwise win matrix ──
+
+function buildWinMatrix(data, scenarioList) {
+  const { models, results } = data;
+  const ids = models.map(m => m.id);
+  const idx = {}; ids.forEach((id, i) => { idx[id] = i; });
+  const M = ids.length;
+  const wins = Array.from({ length: M }, () => new Array(M).fill(0));
+
+  scenarioList.forEach(s => {
+    for (let i = 0; i < M; i++) {
+      const vi = rankVal(data, ids[i], s.id);
+      if (vi == null) continue;
+      for (let j = i + 1; j < M; j++) {
+        const vj = rankVal(data, ids[j], s.id);
+        if (vj == null) continue;
+        const better = s.direction === "lower" ? vi < vj : vi > vj;
+        const tie = vi === vj;
+        if (tie) { wins[i][j] += 0.5; wins[j][i] += 0.5; }
+        else if (better) { wins[i][j] += 1; }
+        else { wins[j][i] += 1; }
+      }
+    }
+  });
+
+  return { ids, idx, wins };
+}
+
+// ── ELO Rating ──
+
+function buildEloMatchups(data, scenarioList) {
+  const { models } = data;
+  const ids = models.map(m => m.id);
+  const M = ids.length;
+  const matchups = [];
+
+  scenarioList.forEach(s => {
+    for (let i = 0; i < M; i++) {
+      const vi = rankVal(data, ids[i], s.id);
+      if (vi == null) continue;
+      for (let j = i + 1; j < M; j++) {
+        const vj = rankVal(data, ids[j], s.id);
+        if (vj == null) continue;
+        if (vi === vj) {
+          matchups.push({ a: i, b: j, sa: 0.5, sb: 0.5 });
+        } else {
+          const better = s.direction === "lower" ? vi < vj : vi > vj;
+          matchups.push({ a: i, b: j, sa: better ? 1 : 0, sb: better ? 0 : 1 });
+        }
+      }
+    }
+  });
+
+  return { ids, matchups };
+}
+
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return function() {
+    state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function computeEloRatings(data, scenarioList, numShuffles, seed) {
+  if (numShuffles == null) numShuffles = 200;
+  if (seed == null) seed = 42;
+  const { ids, matchups } = buildEloMatchups(data, scenarioList);
+  const M = ids.length;
+
+  if (matchups.length === 0) {
+    const result = {};
+    ids.forEach(id => { result[id] = null; });
+    return result;
+  }
+
+  const rand = seededRandom(seed);
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  const ratingSums = new Array(M).fill(0);
+  const order = matchups.map((_, i) => i);
+
+  for (let s = 0; s < numShuffles; s++) {
+    const R = new Array(M).fill(1500);
+    shuffle(order);
+    for (let k = 0; k < order.length; k++) {
+      const m = matchups[order[k]];
+      const ea = 1 / (1 + Math.pow(10, (R[m.b] - R[m.a]) / 400));
+      const eb = 1 - ea;
+      R[m.a] += 32 * (m.sa - ea);
+      R[m.b] += 32 * (m.sb - eb);
+    }
+    for (let i = 0; i < M; i++) ratingSums[i] += R[i];
+  }
+
+  const result = {};
+  ids.forEach((id, i) => {
+    const hasData = matchups.some(m => m.a === i || m.b === i);
+    result[id] = hasData ? ratingSums[i] / numShuffles : null;
+  });
+  return result;
+}
+
+// ── Bradley-Terry MLE ──
+
+function computeBradleyTerryRatings(data, scenarioList) {
+  const { ids, idx, wins } = buildWinMatrix(data, scenarioList);
+  const M = ids.length;
+
+  const w = Array.from({ length: M }, () => new Array(M).fill(0));
+  for (let i = 0; i < M; i++) {
+    for (let j = 0; j < M; j++) {
+      if (i !== j) w[i][j] = wins[i][j] + 0.5;
+    }
+  }
+
+  const participates = new Array(M).fill(false);
+  for (let i = 0; i < M; i++) {
+    for (let j = 0; j < M; j++) {
+      if (wins[i][j] > 0 || wins[j][i] > 0) { participates[i] = true; break; }
+    }
+  }
+
+  let gamma = new Array(M).fill(1.0);
+
+  for (let iter = 0; iter < 1000; iter++) {
+    const newGamma = new Array(M);
+    let maxDiff = 0;
+
+    for (let i = 0; i < M; i++) {
+      if (!participates[i]) { newGamma[i] = 1.0; continue; }
+      let Wi = 0;
+      let denom = 0;
+      for (let j = 0; j < M; j++) {
+        if (j === i) continue;
+        Wi += w[i][j];
+        const nij = w[i][j] + w[j][i];
+        if (nij > 0) denom += nij / (gamma[i] + gamma[j]);
+      }
+      newGamma[i] = denom > 0 ? Wi / denom : gamma[i];
+      maxDiff = Math.max(maxDiff, Math.abs(newGamma[i] - gamma[i]) / (gamma[i] + 1e-12));
+    }
+
+    const logSum = newGamma.reduce((a, g) => a + Math.log(g), 0) / M;
+    gamma = newGamma.map(g => g / Math.exp(logSum));
+
+    if (maxDiff < 1e-6) break;
+  }
+
+  const ratings = gamma.map(g => 400 * Math.log10(g));
+  const participatingRatings = ratings.filter((_, i) => participates[i]);
+  const mean = participatingRatings.reduce((a, b) => a + b, 0) / participatingRatings.length;
+
+  const result = {};
+  ids.forEach((id, i) => {
+    result[id] = participates[i] ? 1500 + (ratings[i] - mean) : null;
+  });
+  return result;
+}
+
+// ── Rendering helpers (recomputed on dataset switch) ──
+
+let winRates, avgRanks, eloRatings, btRatings;
+let eloCatRatings, btCatRatings, eloCatLevelRatings, btCatLevelRatings;
+
+function recomputeRatings() {
+  winRates = computeWinRates(LEADERBOARD_DATA);
+  avgRanks = computeAvgRanks(LEADERBOARD_DATA);
+
+  eloRatings = {};
+  btRatings = {};
+  levels.forEach(l => {
+    eloRatings[l] = computeEloRatings(LEADERBOARD_DATA, getLevelScenarios(l));
+    btRatings[l] = computeBradleyTerryRatings(LEADERBOARD_DATA, getLevelScenarios(l));
+  });
+
+  eloCatRatings = {};
+  btCatRatings = {};
+  categories.forEach(c => {
+    eloCatRatings[c] = computeEloRatings(LEADERBOARD_DATA, getCategoryScenarios(c));
+    btCatRatings[c] = computeBradleyTerryRatings(LEADERBOARD_DATA, getCategoryScenarios(c));
+  });
+
+  eloCatLevelRatings = {};
+  btCatLevelRatings = {};
+  categories.forEach(c => {
+    eloCatLevelRatings[c] = {};
+    btCatLevelRatings[c] = {};
+    levels.forEach(l => {
+      const scens = getCategoryLevelScenarios(c, l);
+      if (scens.length > 0) {
+        eloCatLevelRatings[c][l] = computeEloRatings(LEADERBOARD_DATA, scens);
+        btCatLevelRatings[c][l] = computeBradleyTerryRatings(LEADERBOARD_DATA, scens);
+      }
+    });
+  });
+}
+
+recomputeRatings();
+
+function computeOverallRating(ratingsObj, modelId, keys) {
+  if (!keys) keys = levels;
+  const vals = keys.map(k => ratingsObj[k]?.[modelId]).filter(v => v != null);
+  return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+}
+
+function fmtWR(v) {
+  if (v == null) return '<span class="cell-missing">&ndash;</span>';
+  return v.toFixed(3);
+}
+
+function fmtAvgRank(v) {
+  if (v == null) return '<span class="cell-missing">&ndash;</span>';
+  return v.toFixed(2);
+}
+
+function fmtMetric(v, metric) {
+  if (v == null) return '<span class="cell-missing">&ndash;</span>';
+  if (metric === "Accuracy")        return (v * 100).toFixed(1) + "%";
+  if (metric === "Accuracy %")      return v.toFixed(1) + "%";
+  if (metric === "Win Rate %")      return Math.round(v * 100) + "%";
+  if (metric.includes("BLEURT"))    return v.toFixed(3);
+  if (metric.includes("ROUGE"))     return v.toFixed(3);
+  if (metric.includes("F1"))        return v.toFixed(3);
+  if (metric.includes("Spearman"))  return v.toFixed(3);
+  if (metric === "Avg MAE")         return v.toFixed(1);
+  if (metric === "MAE")             return v.toFixed(1);
+  if (metric === "W Distance")      return v.toFixed(2);
+  return v.toFixed(2);
+}
+
+function wrBar(v, color) {
+  if (v == null) return "";
+  const w = Math.round(v * 60);
+  return `<span class="win-bar" style="width:${w}px;background:${color};"></span>`;
+}
+
+function rankBar(v, nModels) {
+  if (v == null || nModels < 1) return "";
+  const normalized = (nModels - v) / (nModels - 1);
+  const w = Math.max(2, Math.round(normalized * 60));
+  const color = rankColor(v, nModels);
+  return `<span class="win-bar" style="width:${w}px;background:${color};"></span>`;
+}
+
+function wrColor(v) {
+  if (v == null) return "#ccc";
+  const r = Math.round(220 - v * 180);
+  const g = Math.round(80 + v * 140);
+  const b = Math.round(80);
+  return `rgb(${r},${g},${b})`;
+}
+
+function rankColor(v, nModels) {
+  if (v == null) return "#ccc";
+  const normalized = nModels > 1 ? (nModels - v) / (nModels - 1) : 0.5;
+  const r = Math.round(220 - normalized * 180);
+  const g = Math.round(80 + normalized * 140);
+  const b = Math.round(80);
+  return `rgb(${r},${g},${b})`;
+}
+
+function fmtRating(v) {
+  if (v == null) return '<span class="cell-missing">&ndash;</span>';
+  return Math.round(v).toString();
+}
+
+function ratingBar(v, allValues) {
+  if (v == null) return "";
+  const valid = allValues.filter(x => x != null);
+  if (valid.length < 2) return "";
+  const mn = Math.min(...valid);
+  const mx = Math.max(...valid);
+  const range = mx - mn;
+  const normalized = range > 0 ? (v - mn) / range : 0.5;
+  const w = Math.max(2, Math.round(normalized * 60));
+  const r = Math.round(220 - normalized * 180);
+  const g = Math.round(80 + normalized * 140);
+  const b = Math.round(80);
+  return `<span class="win-bar" style="width:${w}px;background:rgb(${r},${g},${b});"></span>`;
+}
+
+function modelRowClass(model) {
+  return model.family === "befm" ? "befm" : "";
+}
+
+function familyTag(model) {
+  if (model.family === "befm") return '<span class="family-tag befm">Be.FM</span>';
+  return "";
+}
+
+function effortTag(model) {
+  if (!model.effort) return "";
+  return `<span class="family-tag effort" title="Reasoning effort">reasoning: ${model.effort}</span>`;
+}
+
+function findBest(values, direction) {
+  const valid = values.filter(v => v != null);
+  if (valid.length === 0) return null;
+  return direction === "lower" ? Math.min(...valid) : Math.max(...valid);
+}
+
+function metricPrecision(metric) {
+  if (metric === "Accuracy" || metric === "Accuracy %") return 1;
+  if (metric === "Win Rate %") return 0;
+  if (metric.includes("BLEURT") || metric.includes("ROUGE")) return 3;
+  if (metric.includes("F1") || metric.includes("Spearman")) return 3;
+  if (metric === "Avg MAE" || metric === "MAE") return 1;
+  if (metric === "W Distance") return 2;
+  return 2;
+}
+
+function metricRound(v, metric) {
+  if (v == null) return null;
+  const p = metricPrecision(metric);
+  const scale = (metric === "Accuracy" || metric === "Win Rate %") ? 100 : 1;
+  return Number((v * scale).toFixed(p));
+}
+
+function findBestRounded(values, metric, direction) {
+  const rounded = values.map(v => metricRound(v, metric)).filter(v => v != null);
+  if (rounded.length === 0) return null;
+  return direction === "lower" ? Math.min(...rounded) : Math.max(...rounded);
+}
+
+// ── Update subtitle and legend ──
+
+function updateChrome() {
+  const legendMethod = document.getElementById("legend-method");
+  const legends = {
+    winrate: 'Mean Win Rate (HELM-style).',
+    elo:     'ELO Rating (K=32, 200 shuffles averaged).',
+  };
+  legendMethod.textContent = legends[rankingMethod];
+}
+
+// ── Main (Overall) tab ──
+
+function renderMain() {
+  const { models, results } = LEADERBOARD_DATA;
+  const scenarios = filterScenarios(LEADERBOARD_DATA.scenarios);
+  const nModels = models.length;
+  const higherBetter = rankingMethod !== "avgrank";
+
+  const rows = models.map(m => {
+    let overall, levelScores = {}, nScenarios;
+
+    if (rankingMethod === "winrate") {
+      levels.forEach(l => { levelScores[l] = avgScore(winRates, m.id, getLevelScenarios(l)); });
+      const vals = levels.map(l => levelScores[l]).filter(v => v != null);
+      overall = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      nScenarios = scenarios.filter(s => winRates[m.id][s.id] != null).length;
+    } else if (rankingMethod === "avgrank") {
+      levels.forEach(l => { levelScores[l] = avgScore(avgRanks, m.id, getLevelScenarios(l)); });
+      const vals = levels.map(l => levelScores[l]).filter(v => v != null);
+      overall = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      nScenarios = scenarios.filter(s => avgRanks[m.id][s.id] != null).length;
+    } else if (rankingMethod === "elo") {
+      levels.forEach(l => { levelScores[l] = eloRatings[l]?.[m.id] ?? null; });
+      overall = computeOverallRating(eloRatings, m.id);
+      nScenarios = scenarios.filter(s => results[m.id]?.[s.id] != null).length;
+    } else {
+      levels.forEach(l => { levelScores[l] = btRatings[l]?.[m.id] ?? null; });
+      overall = computeOverallRating(btRatings, m.id);
+      nScenarios = scenarios.filter(s => results[m.id]?.[s.id] != null).length;
+    }
+
+    return { model: m, overall, levelScores, nScenarios };
+  });
+
+  rows.sort((a, b) => {
+    if (a.overall == null && b.overall == null) return 0;
+    if (a.overall == null) return 1;
+    if (b.overall == null) return -1;
+    return higherBetter ? b.overall - a.overall : a.overall - b.overall;
+  });
+
+  const labels = {
+    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    avgrank: { score: "Avg Rank", arrow: "\u25B2" },
+    elo:     { score: "ELO",      arrow: "\u25BC" },
+    bt:      { score: "BT Rating", arrow: "\u25BC" },
+  };
+  const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
+
+  let html = `
+    <div class="info-bar">
+      <span><strong>${models.length}</strong> models</span>
+      <span><strong>${scenarios.length}</strong> scenarios (${getLevelScenarios("individual").length} individual + ${getLevelScenarios("distributional").length} distributional)</span>
+    </div>
+    <div class="table-wrap">
+    <table id="main-table">
+    <thead><tr>
+      <th class="sc-rank" data-col="rank" data-type="num">Rank<span class="sort-arrow"></span></th>
+      <th class="sc-model" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>
+      <th class="sc-score sorted" data-col="overall" data-type="num">Mean of Ind. and Dist. level<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
+      <th class="sc-indiv" data-col="individual" data-type="num">${levelNames["individual"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
+      <th class="sc-distrib" data-col="distributional" data-type="num">${levelNames["distributional"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
+
+  html += `</tr></thead><tbody>`;
+
+  const allOveralls = rows.map(r => r.overall);
+
+  rows.forEach((r, i) => {
+    const cls = modelRowClass(r.model);
+    let fmtScore, barFn;
+    if (rankingMethod === "winrate") {
+      fmtScore = fmtWR;
+      barFn = (v) => wrBar(v, wrColor(v));
+    } else if (rankingMethod === "avgrank") {
+      fmtScore = fmtAvgRank;
+      barFn = (v) => rankBar(v, nModels);
+    } else {
+      fmtScore = fmtRating;
+      barFn = (v) => ratingBar(v, allOveralls);
+    }
+
+    html += `<tr class="${cls}">
+      <td class="sc-rank">${i + 1}</td>
+      <td class="sc-model"><span class="model-name">${r.model.name}</span>${familyTag(r.model)}${effortTag(r.model)}</td>`;
+    html += `<td class="sc-score">${barFn(r.overall)}${fmtScore(r.overall)}</td>`;
+    levels.forEach((l, idx) => {
+      const v = r.levelScores[l];
+      const scCls = idx === 0 ? "sc-indiv" : "sc-distrib";
+      const lvlBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.levelScores[l]))
+        : barFn;
+      html += `<td class="${scCls}">${lvlBarFn(v)}${fmtScore(v)}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+// ── Level detail tab ──
+
+function renderLevel(level) {
+  const { models, results } = LEADERBOARD_DATA;
+  const scenarios = getLevelScenarios(level);
+  const nModels = models.length;
+  const higherBetter = rankingMethod !== "avgrank";
+
+  const bestVals = {};
+  scenarios.forEach(s => {
+    const vals = models.map(m => results[m.id]?.[s.id]).filter(v => v != null);
+    bestVals[s.id] = findBestRounded(vals, s.metric, s.direction);
+  });
+
+  const rows = models.map(m => {
+    let score;
+    if (rankingMethod === "winrate") score = avgScore(winRates, m.id, scenarios);
+    else if (rankingMethod === "avgrank") score = avgScore(avgRanks, m.id, scenarios);
+    else if (rankingMethod === "elo") score = eloRatings[level]?.[m.id] ?? null;
+    else score = btRatings[level]?.[m.id] ?? null;
+    return { model: m, score };
+  });
+  rows.sort((a, b) => {
+    if (a.score == null && b.score == null) return 0;
+    if (a.score == null) return 1;
+    if (b.score == null) return -1;
+    return higherBetter ? b.score - a.score : a.score - b.score;
+  });
+
+  const dirArrow = d => d === "lower" ? " \u2193" : " \u2191";
+  const labels = {
+    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    avgrank: { score: "Avg Rank", arrow: "\u25B2" },
+    elo:     { score: "ELO",      arrow: "\u25BC" },
+    bt:      { score: "BT Rating", arrow: "\u25BC" },
+  };
+  const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
+
+  // Group scenarios by category, preserving category order
+  const catOrder = { predict_behavior: 0, infer_characteristics: 1, strategic_reasoning: 2, knowledge_reasoning: 3 };
+  const sortedScenarios = [...scenarios].sort((a, b) => (catOrder[a.category] ?? 99) - (catOrder[b.category] ?? 99));
+  const categoryGroups = [];
+  let currentCat = null;
+  sortedScenarios.forEach(s => {
+    if (s.category !== currentCat) {
+      categoryGroups.push({ cat: s.category, scenarios: [s] });
+      currentCat = s.category;
+    } else {
+      categoryGroups[categoryGroups.length - 1].scenarios.push(s);
+    }
+  });
+
+  let html = `
+    <div class="info-bar">
+      <span><strong>${levelNames[level]}</strong>: ${sortedScenarios.length} scenarios</span>
+      <span>Raw metric values shown. Best per column in <strong style="color:var(--best-fg)">green bold</strong>.</span>
+    </div>
+    <div class="table-wrap">
+    <table id="cat-table">
+    <thead>
+    <tr>
+      <th class="sc-rank" rowspan="2">Rank</th>
+      <th class="sc-model" rowspan="2">Model</th>
+      <th class="sc-score sorted" rowspan="2" data-col="catwr" data-type="num">${scoreLabel}<span class="sort-arrow">${defaultArrow}</span></th>`;
+
+  categoryGroups.forEach(g => {
+    html += `<th colspan="${g.scenarios.length}" style="text-align:center;font-size:0.8rem;border-bottom:none;">${categoryNames[g.cat]}</th>`;
+  });
+
+  html += `</tr><tr>`;
+
+  sortedScenarios.forEach(s => {
+    html += `<th data-col="${s.id}" data-type="num">${s.name}<span class="th-sub">${s.metric}${dirArrow(s.direction)}</span><span class="sort-arrow"></span></th>`;
+  });
+
+  html += `</tr>
+    </thead><tbody>`;
+
+  const allScores = rows.map(r => r.score);
+  let fmtScore, barFn;
+  if (rankingMethod === "winrate") {
+    fmtScore = fmtWR;
+    barFn = (v) => wrBar(v, wrColor(v));
+  } else if (rankingMethod === "avgrank") {
+    fmtScore = fmtAvgRank;
+    barFn = (v) => rankBar(v, nModels);
+  } else {
+    fmtScore = fmtRating;
+    barFn = (v) => ratingBar(v, allScores);
+  }
+
+  rows.forEach((r, i) => {
+    const cls = modelRowClass(r.model);
+    html += `<tr class="${cls}">
+      <td class="sc-rank">${i + 1}</td>
+      <td class="sc-model"><span class="model-name">${r.model.name}</span>${familyTag(r.model)}${effortTag(r.model)}</td>
+      <td class="sc-score">${barFn(r.score)}${fmtScore(r.score)}</td>`;
+
+    sortedScenarios.forEach(s => {
+      const val = results[r.model.id]?.[s.id];
+      let cls2 = "";
+      if (val != null && bestVals[s.id] != null && metricRound(val, s.metric) === bestVals[s.id]) cls2 = "cell-best";
+      html += `<td class="${cls2}">${fmtMetric(val, s.metric)}</td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+// ── Category-based Overall tab ──
+
+function renderCategoryMain() {
+  const { models, results } = LEADERBOARD_DATA;
+  const scenarios = filterScenarios(LEADERBOARD_DATA.scenarios);
+  const nModels = models.length;
+  const higherBetter = rankingMethod !== "avgrank";
+
+  // Determine which category-level combos have scenarios
+  const activeCatLevels = [];
+  categories.forEach(c => {
+    levels.forEach(l => {
+      if (getCategoryLevelScenarios(c, l).length > 0) {
+        activeCatLevels.push({ cat: c, level: l });
+      }
+    });
+  });
+
+  const rows = models.map(m => {
+    let overall, levelOveralls = {}, catLevelScores = {};
+
+    categories.forEach(c => {
+      catLevelScores[c] = {};
+      levels.forEach(l => {
+        const scens = getCategoryLevelScenarios(c, l);
+        if (scens.length === 0) { catLevelScores[c][l] = null; return; }
+        if (rankingMethod === "winrate") catLevelScores[c][l] = avgScore(winRates, m.id, scens);
+        else if (rankingMethod === "avgrank") catLevelScores[c][l] = avgScore(avgRanks, m.id, scens);
+        else if (rankingMethod === "elo") catLevelScores[c][l] = eloCatLevelRatings[c]?.[l]?.[m.id] ?? null;
+        else catLevelScores[c][l] = btCatLevelRatings[c]?.[l]?.[m.id] ?? null;
+      });
+    });
+
+    // Level overalls = mean across categories
+    levels.forEach(l => {
+      const vals = categories.map(c => catLevelScores[c]?.[l]).filter(v => v != null);
+      levelOveralls[l] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    });
+
+    // Final overall = mean of level overalls
+    const oVals = levels.map(l => levelOveralls[l]).filter(v => v != null);
+    overall = oVals.length > 0 ? oVals.reduce((a, b) => a + b, 0) / oVals.length : null;
+
+    const nScenarios = scenarios.filter(s => results[m.id]?.[s.id] != null).length;
+    return { model: m, overall, levelOveralls, catLevelScores, nScenarios };
+  });
+
+  rows.sort((a, b) => {
+    if (a.overall == null && b.overall == null) return 0;
+    if (a.overall == null) return 1;
+    if (b.overall == null) return -1;
+    return higherBetter ? b.overall - a.overall : a.overall - b.overall;
+  });
+
+  const labels = {
+    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    avgrank: { score: "Avg Rank", arrow: "\u25B2" },
+    elo:     { score: "ELO",      arrow: "\u25BC" },
+    bt:      { score: "BT Rating", arrow: "\u25BC" },
+  };
+  const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
+  const levelAbbr = { individual: "Indiv.", distributional: "Distrib." };
+
+  const detailCls = showCatDetails ? '' : ' col-detail-hidden';
+
+  let html = `
+    <div class="info-bar">
+      <span><strong>${models.length}</strong> models</span>
+      <span><strong>4</strong> capability categories, <strong>${scenarios.length}</strong> scenarios</span>
+      <span><button class="detail-toggle${showCatDetails ? ' active' : ''}" id="cat-detail-toggle">Per-Category Breakdown</button></span>
+    </div>
+    <div class="table-wrap">
+    <table id="main-table">
+    <thead><tr>
+      <th class="sc-rank" data-col="rank" data-type="num">Rank<span class="sort-arrow"></span></th>
+      <th class="sc-model" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>
+      <th class="sc-score sorted col-agg" data-col="overall" data-type="num">Overall<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
+      <th class="sc-indiv col-agg" data-col="overall_indiv" data-type="num">Indiv.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
+      <th class="sc-distrib col-agg" data-col="overall_distrib" data-type="num">Distrib.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
+
+  activeCatLevels.forEach(({ cat, level }) => {
+    html += `<th data-col="${cat}_${level}" data-type="num" class="col-cat-detail${detailCls}">${categoryShortNames[cat]}<span class="th-sub">${levelAbbr[level]}</span><span class="sort-arrow"></span></th>`;
+  });
+
+  html += `</tr></thead><tbody>`;
+
+  const allOveralls = rows.map(r => r.overall);
+
+  rows.forEach((r, i) => {
+    const cls = modelRowClass(r.model);
+    let fmtScore, barFn;
+    if (rankingMethod === "winrate") {
+      fmtScore = fmtWR;
+      barFn = (v) => wrBar(v, wrColor(v));
+    } else if (rankingMethod === "avgrank") {
+      fmtScore = fmtAvgRank;
+      barFn = (v) => rankBar(v, nModels);
+    } else {
+      fmtScore = fmtRating;
+      barFn = (v) => ratingBar(v, allOveralls);
+    }
+
+    html += `<tr class="${cls}">
+      <td class="sc-rank">${i + 1}</td>
+      <td class="sc-model"><span class="model-name">${r.model.name}</span>${familyTag(r.model)}${effortTag(r.model)}</td>`;
+
+    html += `<td class="sc-score col-agg">${barFn(r.overall)}${fmtScore(r.overall)}</td>`;
+
+    // Level overalls (Individual, Distributional)
+    levels.forEach((l, idx) => {
+      const v = r.levelOveralls[l];
+      const scCls = idx === 0 ? "sc-indiv" : "sc-distrib";
+      const lvlBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.levelOveralls[l]))
+        : barFn;
+      html += `<td class="${scCls} col-agg">${lvlBarFn(v)}${fmtScore(v)}</td>`;
+    });
+
+    // Per-category per-level scores
+    activeCatLevels.forEach(({ cat, level }) => {
+      const v = r.catLevelScores[cat]?.[level];
+      const clBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.catLevelScores[cat]?.[level]))
+        : barFn;
+      html += `<td class="col-cat-detail${detailCls}">${clBarFn(v)}${fmtScore(v)}</td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+// ── Category detail tab ──
+
+function renderCategory(cat) {
+  const { models, results } = LEADERBOARD_DATA;
+  const allScenarios = getCategoryScenarios(cat);
+  const nModels = models.length;
+  const higherBetter = rankingMethod !== "avgrank";
+
+  // Which levels exist for this category
+  const catLevels = levels.filter(l => getCategoryLevelScenarios(cat, l).length > 0);
+
+  const bestVals = {};
+  allScenarios.forEach(s => {
+    const vals = models.map(m => results[m.id]?.[s.id]).filter(v => v != null);
+    bestVals[s.id] = findBestRounded(vals, s.metric, s.direction);
+  });
+
+  const rows = models.map(m => {
+    const levelScores = {};
+    catLevels.forEach(l => {
+      const scens = getCategoryLevelScenarios(cat, l);
+      if (rankingMethod === "winrate") levelScores[l] = avgScore(winRates, m.id, scens);
+      else if (rankingMethod === "avgrank") levelScores[l] = avgScore(avgRanks, m.id, scens);
+      else if (rankingMethod === "elo") levelScores[l] = eloCatLevelRatings[cat]?.[l]?.[m.id] ?? null;
+      else levelScores[l] = btCatLevelRatings[cat]?.[l]?.[m.id] ?? null;
+    });
+    // Sort key: average of available level scores
+    const vals = catLevels.map(l => levelScores[l]).filter(v => v != null);
+    const sortScore = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    return { model: m, levelScores, sortScore };
+  });
+
+  rows.sort((a, b) => {
+    if (a.sortScore == null && b.sortScore == null) return 0;
+    if (a.sortScore == null) return 1;
+    if (b.sortScore == null) return -1;
+    return higherBetter ? b.sortScore - a.sortScore : a.sortScore - b.sortScore;
+  });
+
+  const dirArrow = d => d === "lower" ? " \u2193" : " \u2191";
+  const labels = {
+    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    avgrank: { score: "Avg Rank", arrow: "\u25B2" },
+    elo:     { score: "ELO",      arrow: "\u25BC" },
+    bt:      { score: "BT Rating", arrow: "\u25BC" },
+  };
+  const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
+  const levelAbbr = { individual: "Indiv.", distributional: "Distrib." };
+
+  // Build task groups: group scenarios by name, merging across levels
+  const taskGroupMap = new Map(); // name -> { individual: scenario|null, distributional: scenario|null }
+  const taskGroupOrder = []; // preserve order: individual first, then distributional-only
+  catLevels.forEach(l => {
+    getCategoryLevelScenarios(cat, l).forEach(s => {
+      if (!taskGroupMap.has(s.name)) {
+        taskGroupMap.set(s.name, { individual: null, distributional: null });
+        taskGroupOrder.push(s.name);
+      }
+      taskGroupMap.get(s.name)[l] = s;
+    });
+  });
+
+  // Flatten to ordered scenario list matching column order
+  const orderedScenarios = [];
+  taskGroupOrder.forEach(name => {
+    const g = taskGroupMap.get(name);
+    if (g.individual) orderedScenarios.push(g.individual);
+    if (g.distributional) orderedScenarios.push(g.distributional);
+  });
+
+  let html = `
+    <div class="info-bar">
+      <span><strong>${categoryNames[cat]}</strong>: ${allScenarios.length} scenarios</span>
+      <span>Raw metric values shown. Best per column in <strong style="color:var(--best-fg)">green bold</strong>.</span>
+    </div>
+    <div class="table-wrap">
+    <table id="cat-table">
+    <thead>
+    <tr>
+      <th class="sc-rank" rowspan="2">Rank</th>
+      <th class="sc-model" rowspan="2">Model</th>`;
+
+  // Score columns span 2 rows
+  const catScoreClasses = { individual: "sc-indiv", distributional: "sc-distrib" };
+  catLevels.forEach((l, idx) => {
+    const scCls = catLevels.length === 1 ? "sc-score" : catScoreClasses[l];
+    html += `<th class="${scCls} col-agg${idx === 0 ? ' sorted' : ''}" rowspan="2" data-col="score_${l}" data-type="num">${levelAbbr[l]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${idx === 0 ? defaultArrow : ''}</span></th>`;
+  });
+
+  // Row 1: task name groups (merged across levels when sharing same name)
+  taskGroupOrder.forEach(name => {
+    const g = taskGroupMap.get(name);
+    const colspan = (g.individual ? 1 : 0) + (g.distributional ? 1 : 0);
+    html += `<th colspan="${colspan}" style="text-align:center;font-size:0.8rem;border-bottom:none;">${name}</th>`;
+  });
+
+  html += `</tr><tr>`;
+
+  // Row 2: metric type per scenario column
+  taskGroupOrder.forEach(name => {
+    const g = taskGroupMap.get(name);
+    if (g.individual) {
+      html += `<th data-col="${g.individual.id}" data-type="num">${g.individual.metric}${dirArrow(g.individual.direction)}<span class="sort-arrow"></span></th>`;
+    }
+    if (g.distributional) {
+      html += `<th data-col="${g.distributional.id}" data-type="num">${g.distributional.metric}${dirArrow(g.distributional.direction)}<span class="sort-arrow"></span></th>`;
+    }
+  });
+
+  html += `</tr>
+    </thead><tbody>`;
+
+  rows.forEach((r, i) => {
+    const cls = modelRowClass(r.model);
+
+    let fmtScore, barFn;
+    if (rankingMethod === "winrate") {
+      fmtScore = fmtWR; barFn = (v) => wrBar(v, wrColor(v));
+    } else if (rankingMethod === "avgrank") {
+      fmtScore = fmtAvgRank; barFn = (v) => rankBar(v, nModels);
+    } else {
+      fmtScore = fmtRating;
+      barFn = (v) => ratingBar(v, rows.map(rr => rr.sortScore));
+    }
+
+    html += `<tr class="${cls}">
+      <td class="sc-rank">${i + 1}</td>
+      <td class="sc-model"><span class="model-name">${r.model.name}</span>${familyTag(r.model)}${effortTag(r.model)}</td>`;
+
+    // Score columns per level
+    catLevels.forEach(l => {
+      const v = r.levelScores[l];
+      const lvlBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.levelScores[l]))
+        : barFn;
+      const scCls = catLevels.length === 1 ? "sc-score" : catScoreClasses[l];
+      html += `<td class="${scCls} col-agg">${lvlBarFn(v)}${fmtScore(v)}</td>`;
+    });
+
+    // Raw scenario values in task-group order
+    orderedScenarios.forEach(s => {
+      const val = results[r.model.id]?.[s.id];
+      let cls2 = "";
+      if (val != null && bestVals[s.id] != null && metricRound(val, s.metric) === bestVals[s.id]) cls2 = "cell-best";
+      html += `<td class="${cls2}">${fmtMetric(val, s.metric)}</td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+// ── Tab switching ──
+
+let currentTab = "overall";
+
+function updateTabs() {
+  const tabsEl = document.getElementById("tabs");
+  if (viewMode === "level") {
+    tabsEl.innerHTML = `
+      <button class="tab${currentTab === 'overall' ? ' active' : ''}" data-tab="overall">Overall</button>
+      <button class="tab${currentTab === 'individual' ? ' active' : ''}" data-tab="individual">Individual Level</button>
+      <button class="tab${currentTab === 'distributional' ? ' active' : ''}" data-tab="distributional">Distributional Level</button>
+    `;
+  } else {
+    tabsEl.innerHTML = `
+      <button class="tab${currentTab === 'overall' ? ' active' : ''}" data-tab="overall">Overall</button>
+      ${categories.map(c => `<button class="tab${currentTab === c ? ' active' : ''}" data-tab="${c}">${categoryShortNames[c]}</button>`).join("")}
+    `;
+  }
+}
+
+function renderTab(tab) {
+  currentTab = tab;
+  const content = document.getElementById("content");
+  if (viewMode === "level") {
+    if (tab === "overall") {
+      content.innerHTML = renderMain();
+    } else {
+      content.innerHTML = renderLevel(tab);
+    }
+  } else {
+    if (tab === "overall") {
+      content.innerHTML = renderCategoryMain();
+    } else {
+      content.innerHTML = renderCategory(tab);
+    }
+  }
+  updateChrome();
+  setupSorting();
+  setupDetailToggle();
+}
+
+document.getElementById("tabs").addEventListener("click", e => {
+  if (!e.target.classList.contains("tab")) return;
+  document.querySelectorAll("#tabs .tab").forEach(t => t.classList.remove("active"));
+  e.target.classList.add("active");
+  renderTab(e.target.dataset.tab);
+});
+
+// ── Ranking method toggle ──
+
+document.getElementById("ranking-toggle").addEventListener("click", e => {
+  if (!e.target.classList.contains("toggle-btn")) return;
+  const newMethod = e.target.dataset.ranking;
+  if (newMethod === rankingMethod) return;
+  rankingMethod = newMethod;
+  document.querySelectorAll("#ranking-toggle .toggle-btn").forEach(b => b.classList.remove("active"));
+  e.target.classList.add("active");
+  renderTab(currentTab);
+});
+
+// ── Detail toggle ──
+
+function setupDetailToggle() {
+  const btn = document.getElementById("cat-detail-toggle");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    showCatDetails = !showCatDetails;
+    renderTab(currentTab);
+  });
+}
+
+// ── Column sorting ──
+
+function setupSorting() {
+  document.querySelectorAll("table thead th[data-col]").forEach(th => {
+    th.addEventListener("click", () => {
+      const table = th.closest("table");
+      const tbody = table.querySelector("tbody");
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      const colKey = th.dataset.col;
+      const isNum = th.dataset.type === "num";
+      // Build a column-key → body-cell-index map from ALL header <th> elements,
+      // accounting for rowspan/colspan in multi-row headers.
+      // Walk all header rows and assign virtual column positions.
+      const headerRows = Array.from(table.querySelectorAll("thead tr"));
+      const occupied = {};  // {row_col: true} for cells occupied by rowspan/colspan
+      const colKeyToIdx = {};
+      headerRows.forEach((tr, rowIdx) => {
+        let virtCol = 0;
+        Array.from(tr.children).forEach(cell => {
+          while (occupied[`${rowIdx}_${virtCol}`]) virtCol++;
+          const rs = parseInt(cell.getAttribute("rowspan") || "1");
+          const cs = parseInt(cell.getAttribute("colspan") || "1");
+          if (cell.dataset.col) colKeyToIdx[cell.dataset.col] = virtCol;
+          for (let r = 0; r < rs; r++)
+            for (let c = 0; c < cs; c++)
+              occupied[`${rowIdx + r}_${virtCol + c}`] = true;
+          virtCol += cs;
+        });
+      });
+      const colIdx = colKeyToIdx[colKey] ?? -1;
+
+      const wasAsc = th.dataset.sortDir === "asc";
+      const asc = !wasAsc;
+      th.dataset.sortDir = asc ? "asc" : "desc";
+
+      table.querySelectorAll("th").forEach(h => {
+        h.classList.remove("sorted");
+        const arrow = h.querySelector(".sort-arrow");
+        if (arrow) arrow.textContent = "";
+      });
+      th.classList.add("sorted");
+      const arrow = th.querySelector(".sort-arrow");
+      if (arrow) arrow.textContent = asc ? "\u25B2" : "\u25BC";
+
+      rows.sort((a, b) => {
+        let va = a.children[colIdx]?.dataset.sortVal ?? a.children[colIdx]?.textContent.trim();
+        let vb = b.children[colIdx]?.dataset.sortVal ?? b.children[colIdx]?.textContent.trim();
+        if (va === "\u2014" || va === "") va = null;
+        if (vb === "\u2014" || vb === "") vb = null;
+        if (va == null && vb == null) return 0;
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        if (isNum) {
+          va = parseFloat(va);
+          vb = parseFloat(vb);
+          return asc ? va - vb : vb - va;
+        }
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+
+      rows.forEach((row, i) => {
+        row.children[0].textContent = i + 1;
+        tbody.appendChild(row);
+      });
+    });
+  });
+}
+
+// Public version: dataset is fixed, BeFM run-mode is fixed to 5-run mean,
+// and Push/Pull is always merged into MobLab aggregates — there are no
+// internal-only toggles here.
+
+// Initial render
+updateTabs();
+renderTab("overall");
+
+</script>
+</body>
+</html>
