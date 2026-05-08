@@ -1168,29 +1168,49 @@ function renderMain() {
   const higherBetter = rankingMethod !== "avgrank";
 
   const rows = models.map(m => {
-    let overall, levelScores = {}, nScenarios;
+    let overall, levelScores = {}, categoryScores = {}, nScenarios;
 
     if (rankingMethod === "winrate") {
       levels.forEach(l => { levelScores[l] = avgScore(winRates, m.id, getLevelScenarios(l)); });
       const vals = levels.map(l => levelScores[l]).filter(v => v != null);
       overall = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
       nScenarios = scenarios.filter(s => winRates[m.id][s.id] != null).length;
+      categories.forEach(c => {
+        const vals = levels
+          .map(l => avgScore(winRates, m.id, getCategoryLevelScenarios(c, l)))
+          .filter(v => v != null);
+        categoryScores[c] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      });
     } else if (rankingMethod === "avgrank") {
       levels.forEach(l => { levelScores[l] = avgScore(avgRanks, m.id, getLevelScenarios(l)); });
       const vals = levels.map(l => levelScores[l]).filter(v => v != null);
       overall = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
       nScenarios = scenarios.filter(s => avgRanks[m.id][s.id] != null).length;
+      categories.forEach(c => {
+        const vals = levels
+          .map(l => avgScore(avgRanks, m.id, getCategoryLevelScenarios(c, l)))
+          .filter(v => v != null);
+        categoryScores[c] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      });
     } else if (rankingMethod === "elo") {
       levels.forEach(l => { levelScores[l] = eloRatings[l]?.[m.id] ?? null; });
       overall = computeOverallRating(eloRatings, m.id);
       nScenarios = scenarios.filter(s => results[m.id]?.[s.id] != null).length;
+      categories.forEach(c => {
+        const vals = levels.map(l => eloCatLevelRatings[c]?.[l]?.[m.id]).filter(v => v != null);
+        categoryScores[c] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      });
     } else {
       levels.forEach(l => { levelScores[l] = btRatings[l]?.[m.id] ?? null; });
       overall = computeOverallRating(btRatings, m.id);
       nScenarios = scenarios.filter(s => results[m.id]?.[s.id] != null).length;
+      categories.forEach(c => {
+        const vals = levels.map(l => btCatLevelRatings[c]?.[l]?.[m.id]).filter(v => v != null);
+        categoryScores[c] = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      });
     }
 
-    return { model: m, overall, levelScores, nScenarios };
+    return { model: m, overall, levelScores, categoryScores, nScenarios };
   });
 
   rows.sort((a, b) => {
@@ -1224,6 +1244,10 @@ function renderMain() {
       <th class="sc-indiv" data-col="individual" data-type="num" data-direction="${scoreDir}">${levelNames["individual"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
       <th class="sc-distrib" data-col="distributional" data-type="num" data-direction="${scoreDir}">${levelNames["distributional"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
 
+  categories.forEach(c => {
+    html += `<th class="col-agg" data-col="capability_${c}" data-type="num" data-direction="${scoreDir}">${categoryNames[c]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
+  });
+
   html += `</tr></thead><tbody>`;
 
   const allOveralls = rows.map(r => r.overall);
@@ -1253,6 +1277,13 @@ function renderMain() {
         ? (v) => ratingBar(v, rows.map(rr => rr.levelScores[l]))
         : barFn;
       html += `<td class="${scCls}">${lvlBarFn(v)}${fmtScore(v)}</td>`;
+    });
+    categories.forEach(c => {
+      const v = r.categoryScores[c];
+      const catBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.categoryScores[c]))
+        : barFn;
+      html += `<td class="col-agg">${catBarFn(v)}${fmtScore(v)}</td>`;
     });
     html += `</tr>`;
   });
