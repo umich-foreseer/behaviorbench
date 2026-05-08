@@ -379,14 +379,15 @@
   <h1>BehaviorBench Leaderboards</h1>
   <p class="subtitle">A benchmark for foundation models on behavioral-science tasks, evaluated at the individual and distributional levels.</p>
   <div class="action-bar" aria-label="External resources">
-    <a class="action-btn" href="#" title="Paper (placeholder)">
+    <a class="action-btn" href="#" title="Paper (TBA)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
       Paper
-      <span class="placeholder-tag">TBD</span>
+      <span class="placeholder-tag">TBA</span>
     </a>
-    <a class="action-btn" href="https://huggingface.co/befm/" title="Models on Hugging Face" target="_blank" rel="noopener">
+    <a class="action-btn" href="#" title="Models (TBA)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="0.8" fill="currentColor"/><circle cx="15" cy="10" r="0.8" fill="currentColor"/></svg>
       Models
+      <span class="placeholder-tag">TBA</span>
     </a>
   </div>
 </div>
@@ -661,7 +662,6 @@ LEADERBOARD_DATA = buildLeaderboardData(DEFAULT_DATASET, befmRunMode);
 
 let currentDataset = DEFAULT_DATASET;
 let rankingMethod = "winrate";
-let viewMode = "level"; // "level" or "category"
 let showCatDetails = false;
 // scenarioFilters (subset of "no_acrossgame", "merge_pushpull") is declared
 // in the first <script> block as a var so it is visible before the initial
@@ -1047,7 +1047,6 @@ function fmtMetric(v, metric) {
   if (metric.includes("ROUGE"))     return v.toFixed(3);
   if (metric.includes("F1"))        return v.toFixed(3);
   if (metric.includes("Spearman"))  return v.toFixed(3);
-  if (metric === "Avg MAE")         return v.toFixed(1);
   if (metric === "MAE")             return v.toFixed(1);
   if (metric === "W Distance")      return v.toFixed(2);
   return v.toFixed(2);
@@ -1129,7 +1128,7 @@ function metricPrecision(metric) {
   if (metric === "Win Rate %") return 0;
   if (metric.includes("BLEURT") || metric.includes("ROUGE")) return 3;
   if (metric.includes("F1") || metric.includes("Spearman")) return 3;
-  if (metric === "Avg MAE" || metric === "MAE") return 1;
+  if (metric === "MAE") return 1;
   if (metric === "W Distance") return 2;
   return 2;
 }
@@ -1200,12 +1199,14 @@ function renderMain() {
   });
 
   const labels = {
-    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    winrate: { score: "Mean Win Rate", arrow: "\u25BC" },
     avgrank: { score: "Avg Rank", arrow: "\u25B2" },
     elo:     { score: "ELO",      arrow: "\u25BC" },
     bt:      { score: "BT Rating", arrow: "\u25BC" },
   };
   const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
+  const scoreDir = rankingMethod === "avgrank" ? "lower" : "higher";
+  const initSortDir = scoreDir === "lower" ? "asc" : "desc";
 
   let html = `
     <div class="info-bar">
@@ -1215,11 +1216,11 @@ function renderMain() {
     <div class="table-wrap">
     <table id="main-table">
     <thead><tr>
-      <th class="sc-rank" data-col="rank" data-type="num">Rank<span class="sort-arrow"></span></th>
+      <th class="sc-rank" data-col="rank" data-type="num" data-direction="lower">Rank<span class="sort-arrow"></span></th>
       <th class="sc-model" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>
-      <th class="sc-score sorted" data-col="overall" data-type="num">Mean of Ind. and Dist. level<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
-      <th class="sc-indiv" data-col="individual" data-type="num">${levelNames["individual"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
-      <th class="sc-distrib" data-col="distributional" data-type="num">${levelNames["distributional"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
+      <th class="sc-score sorted" data-col="overall" data-type="num" data-direction="${scoreDir}" data-sort-dir="${initSortDir}">Mean of Ind. and Dist. level<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
+      <th class="sc-indiv" data-col="individual" data-type="num" data-direction="${scoreDir}">${levelNames["individual"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
+      <th class="sc-distrib" data-col="distributional" data-type="num" data-direction="${scoreDir}">${levelNames["distributional"]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
 
   html += `</tr></thead><tbody>`;
 
@@ -1289,12 +1290,14 @@ function renderLevel(level) {
 
   const dirArrow = d => d === "lower" ? " \u2193" : " \u2191";
   const labels = {
-    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    winrate: { score: "Mean Win Rate", arrow: "\u25BC" },
     avgrank: { score: "Avg Rank", arrow: "\u25B2" },
     elo:     { score: "ELO",      arrow: "\u25BC" },
     bt:      { score: "BT Rating", arrow: "\u25BC" },
   };
   const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
+  const scoreDir = rankingMethod === "avgrank" ? "lower" : "higher";
+  const initSortDir = scoreDir === "lower" ? "asc" : "desc";
 
   // Group scenarios by category, preserving category order
   const catOrder = { predict_behavior: 0, infer_characteristics: 1, strategic_reasoning: 2, knowledge_reasoning: 3 };
@@ -1319,9 +1322,9 @@ function renderLevel(level) {
     <table id="cat-table">
     <thead>
     <tr>
-      <th class="sc-rank" rowspan="2">Rank</th>
-      <th class="sc-model" rowspan="2">Model</th>
-      <th class="sc-score sorted" rowspan="2" data-col="catwr" data-type="num">${scoreLabel}<span class="sort-arrow">${defaultArrow}</span></th>`;
+      <th class="sc-rank" rowspan="2" data-col="rank" data-type="num" data-direction="lower">Rank<span class="sort-arrow"></span></th>
+      <th class="sc-model" rowspan="2" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>
+      <th class="sc-score sorted" rowspan="2" data-col="catwr" data-type="num" data-direction="${scoreDir}" data-sort-dir="${initSortDir}">${scoreLabel}<span class="sort-arrow">${defaultArrow}</span></th>`;
 
   categoryGroups.forEach(g => {
     html += `<th colspan="${g.scenarios.length}" style="text-align:center;font-size:0.8rem;border-bottom:none;">${categoryNames[g.cat]}</th>`;
@@ -1330,7 +1333,7 @@ function renderLevel(level) {
   html += `</tr><tr>`;
 
   sortedScenarios.forEach(s => {
-    html += `<th data-col="${s.id}" data-type="num">${s.name}<span class="th-sub">${s.metric}${dirArrow(s.direction)}</span><span class="sort-arrow"></span></th>`;
+    html += `<th data-col="${s.id}" data-type="num" data-direction="${s.direction}">${s.name}<span class="th-sub">${s.metric}${dirArrow(s.direction)}</span><span class="sort-arrow"></span></th>`;
   });
 
   html += `</tr>
@@ -1425,7 +1428,7 @@ function renderCategoryMain() {
   });
 
   const labels = {
-    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    winrate: { score: "Mean Win Rate", arrow: "\u25BC" },
     avgrank: { score: "Avg Rank", arrow: "\u25B2" },
     elo:     { score: "ELO",      arrow: "\u25BC" },
     bt:      { score: "BT Rating", arrow: "\u25BC" },
@@ -1434,6 +1437,8 @@ function renderCategoryMain() {
   const levelAbbr = { individual: "Indiv.", distributional: "Distrib." };
 
   const detailCls = showCatDetails ? '' : ' col-detail-hidden';
+  const scoreDir = rankingMethod === "avgrank" ? "lower" : "higher";
+  const initSortDir = scoreDir === "lower" ? "asc" : "desc";
 
   let html = `
     <div class="info-bar">
@@ -1444,14 +1449,14 @@ function renderCategoryMain() {
     <div class="table-wrap">
     <table id="main-table">
     <thead><tr>
-      <th class="sc-rank" data-col="rank" data-type="num">Rank<span class="sort-arrow"></span></th>
+      <th class="sc-rank" data-col="rank" data-type="num" data-direction="lower">Rank<span class="sort-arrow"></span></th>
       <th class="sc-model" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>
-      <th class="sc-score sorted col-agg" data-col="overall" data-type="num">Overall<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
-      <th class="sc-indiv col-agg" data-col="overall_indiv" data-type="num">Indiv.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
-      <th class="sc-distrib col-agg" data-col="overall_distrib" data-type="num">Distrib.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
+      <th class="sc-score sorted col-agg" data-col="overall" data-type="num" data-direction="${scoreDir}" data-sort-dir="${initSortDir}">Overall<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
+      <th class="sc-indiv col-agg" data-col="overall_indiv" data-type="num" data-direction="${scoreDir}">Indiv.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
+      <th class="sc-distrib col-agg" data-col="overall_distrib" data-type="num" data-direction="${scoreDir}">Distrib.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
 
   activeCatLevels.forEach(({ cat, level }) => {
-    html += `<th data-col="${cat}_${level}" data-type="num" class="col-cat-detail${detailCls}">${categoryShortNames[cat]}<span class="th-sub">${levelAbbr[level]}</span><span class="sort-arrow"></span></th>`;
+    html += `<th data-col="${cat}_${level}" data-type="num" data-direction="${scoreDir}" class="col-cat-detail${detailCls}">${categoryShortNames[cat]}<span class="th-sub">${levelAbbr[level]}</span><span class="sort-arrow"></span></th>`;
   });
 
   html += `</tr></thead><tbody>`;
@@ -1545,7 +1550,7 @@ function renderCategory(cat) {
 
   const dirArrow = d => d === "lower" ? " \u2193" : " \u2191";
   const labels = {
-    winrate: { score: "Win Rate", arrow: "\u25BC" },
+    winrate: { score: "Mean Win Rate", arrow: "\u25BC" },
     avgrank: { score: "Avg Rank", arrow: "\u25B2" },
     elo:     { score: "ELO",      arrow: "\u25BC" },
     bt:      { score: "BT Rating", arrow: "\u25BC" },
@@ -1574,6 +1579,9 @@ function renderCategory(cat) {
     if (g.distributional) orderedScenarios.push(g.distributional);
   });
 
+  const scoreDir = rankingMethod === "avgrank" ? "lower" : "higher";
+  const initSortDir = scoreDir === "lower" ? "asc" : "desc";
+
   let html = `
     <div class="info-bar">
       <span><strong>${categoryNames[cat]}</strong>: ${allScenarios.length} scenarios</span>
@@ -1583,15 +1591,8 @@ function renderCategory(cat) {
     <table id="cat-table">
     <thead>
     <tr>
-      <th class="sc-rank" rowspan="2">Rank</th>
-      <th class="sc-model" rowspan="2">Model</th>`;
-
-  // Score columns span 2 rows
-  const catScoreClasses = { individual: "sc-indiv", distributional: "sc-distrib" };
-  catLevels.forEach((l, idx) => {
-    const scCls = catLevels.length === 1 ? "sc-score" : catScoreClasses[l];
-    html += `<th class="${scCls} col-agg${idx === 0 ? ' sorted' : ''}" rowspan="2" data-col="score_${l}" data-type="num">${levelAbbr[l]}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${idx === 0 ? defaultArrow : ''}</span></th>`;
-  });
+      <th class="sc-rank" rowspan="2" data-col="rank" data-type="num" data-direction="lower">Rank<span class="sort-arrow"></span></th>
+      <th class="sc-model" rowspan="2" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>`;
 
   // Row 1: task name groups (merged across levels when sharing same name)
   taskGroupOrder.forEach(name => {
@@ -1606,10 +1607,10 @@ function renderCategory(cat) {
   taskGroupOrder.forEach(name => {
     const g = taskGroupMap.get(name);
     if (g.individual) {
-      html += `<th data-col="${g.individual.id}" data-type="num">${g.individual.metric}${dirArrow(g.individual.direction)}<span class="sort-arrow"></span></th>`;
+      html += `<th data-col="${g.individual.id}" data-type="num" data-direction="${g.individual.direction}">${g.individual.metric}${dirArrow(g.individual.direction)}<span class="sort-arrow"></span></th>`;
     }
     if (g.distributional) {
-      html += `<th data-col="${g.distributional.id}" data-type="num">${g.distributional.metric}${dirArrow(g.distributional.direction)}<span class="sort-arrow"></span></th>`;
+      html += `<th data-col="${g.distributional.id}" data-type="num" data-direction="${g.distributional.direction}">${g.distributional.metric}${dirArrow(g.distributional.direction)}<span class="sort-arrow"></span></th>`;
     }
   });
 
@@ -1619,29 +1620,9 @@ function renderCategory(cat) {
   rows.forEach((r, i) => {
     const cls = modelRowClass(r.model);
 
-    let fmtScore, barFn;
-    if (rankingMethod === "winrate") {
-      fmtScore = fmtWR; barFn = (v) => wrBar(v, wrColor(v));
-    } else if (rankingMethod === "avgrank") {
-      fmtScore = fmtAvgRank; barFn = (v) => rankBar(v, nModels);
-    } else {
-      fmtScore = fmtRating;
-      barFn = (v) => ratingBar(v, rows.map(rr => rr.sortScore));
-    }
-
     html += `<tr class="${cls}">
       <td class="sc-rank">${i + 1}</td>
       <td class="sc-model"><span class="model-name">${r.model.name}</span>${familyTag(r.model)}${effortTag(r.model)}</td>`;
-
-    // Score columns per level
-    catLevels.forEach(l => {
-      const v = r.levelScores[l];
-      const lvlBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
-        ? (v) => ratingBar(v, rows.map(rr => rr.levelScores[l]))
-        : barFn;
-      const scCls = catLevels.length === 1 ? "sc-score" : catScoreClasses[l];
-      html += `<td class="${scCls} col-agg">${lvlBarFn(v)}${fmtScore(v)}</td>`;
-    });
 
     // Raw scenario values in task-group order
     orderedScenarios.forEach(s => {
@@ -1664,35 +1645,23 @@ let currentTab = "overall";
 
 function updateTabs() {
   const tabsEl = document.getElementById("tabs");
-  if (viewMode === "level") {
-    tabsEl.innerHTML = `
-      <button class="tab${currentTab === 'overall' ? ' active' : ''}" data-tab="overall">Overall</button>
-      <button class="tab${currentTab === 'individual' ? ' active' : ''}" data-tab="individual">Individual Level</button>
-      <button class="tab${currentTab === 'distributional' ? ' active' : ''}" data-tab="distributional">Distributional Level</button>
-    `;
-  } else {
-    tabsEl.innerHTML = `
-      <button class="tab${currentTab === 'overall' ? ' active' : ''}" data-tab="overall">Overall</button>
-      ${categories.map(c => `<button class="tab${currentTab === c ? ' active' : ''}" data-tab="${c}">${categoryShortNames[c]}</button>`).join("")}
-    `;
-  }
+  tabsEl.innerHTML = `
+    <button class="tab${currentTab === 'overall' ? ' active' : ''}" data-tab="overall">Overall</button>
+    <button class="tab${currentTab === 'individual' ? ' active' : ''}" data-tab="individual">Individual Level</button>
+    <button class="tab${currentTab === 'distributional' ? ' active' : ''}" data-tab="distributional">Distributional Level</button>
+    ${categories.map(c => `<button class="tab${currentTab === c ? ' active' : ''}" data-tab="${c}">${categoryNames[c]}</button>`).join("")}
+  `;
 }
 
 function renderTab(tab) {
   currentTab = tab;
   const content = document.getElementById("content");
-  if (viewMode === "level") {
-    if (tab === "overall") {
-      content.innerHTML = renderMain();
-    } else {
-      content.innerHTML = renderLevel(tab);
-    }
+  if (tab === "overall") {
+    content.innerHTML = renderMain();
+  } else if (tab === "individual" || tab === "distributional") {
+    content.innerHTML = renderLevel(tab);
   } else {
-    if (tab === "overall") {
-      content.innerHTML = renderCategoryMain();
-    } else {
-      content.innerHTML = renderCategory(tab);
-    }
+    content.innerHTML = renderCategory(tab);
   }
   updateChrome();
   setupSorting();
@@ -1760,15 +1729,24 @@ function setupSorting() {
       });
       const colIdx = colKeyToIdx[colKey] ?? -1;
 
-      const wasAsc = th.dataset.sortDir === "asc";
-      const asc = !wasAsc;
-      th.dataset.sortDir = asc ? "asc" : "desc";
+      // First click on a column: sort best-first (asc when string-or-lower-better,
+      // desc when higher-better). Subsequent clicks on the same column flip.
+      const direction = th.dataset.direction; // "lower" | "higher" | undefined (string)
+      const cur = th.dataset.sortDir;
+      let asc;
+      if (cur === "asc" || cur === "desc") {
+        asc = cur !== "asc";
+      } else {
+        asc = !isNum || direction === "lower";
+      }
 
       table.querySelectorAll("th").forEach(h => {
         h.classList.remove("sorted");
+        if (h !== th) delete h.dataset.sortDir;
         const arrow = h.querySelector(".sort-arrow");
         if (arrow) arrow.textContent = "";
       });
+      th.dataset.sortDir = asc ? "asc" : "desc";
       th.classList.add("sorted");
       const arrow = th.querySelector(".sort-arrow");
       if (arrow) arrow.textContent = asc ? "\u25B2" : "\u25BC";

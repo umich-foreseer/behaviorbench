@@ -34,8 +34,8 @@ var LEADERBOARD_DATA = {
 
   scenarios: [
     // -- Individual-Level Alignment --
-    { id: "ml_multiround_mae", name: "Multi-Round Pred.", fullName: "Multi-round game behavior prediction", metric: "Avg MAE", direction: "lower", level: "individual", category: "predict_behavior" },
-    { id: "ml_acrossgame_mae", name: "Across-Ctx Pred.", fullName: "Single-round game behavior prediction given observations from other games", metric: "Avg MAE", direction: "lower", level: "individual", category: "predict_behavior" },
+    { id: "ml_multiround_mae", name: "Multi-Round Pred.", fullName: "Multi-round game behavior prediction", metric: "MAE", direction: "lower", level: "individual", category: "predict_behavior" },
+    { id: "ml_acrossgame_mae", name: "Across-Ctx Pred.", fullName: "Single-round game behavior prediction given observations from other games", metric: "MAE", direction: "lower", level: "individual", category: "predict_behavior" },
     { id: "ho_pp_multiround_f1", name: "Multi-Round Pred. (Push/Pull)", fullName: "Push/Pull multi-round prediction", metric: "F1", direction: "higher", level: "individual", category: "predict_behavior" },
     { id: "ho_pp_acrossgame_f1", name: "Across-Ctx Pred. (Push/Pull)", fullName: "Push/Pull across-game prediction", metric: "F1", direction: "higher", level: "individual", category: "predict_behavior" },
     { id: "bf_pers_score", name: "Demo. To Pers.", fullName: "Personality score prediction given demographics", metric: "MAE", direction: "lower", level: "individual", category: "infer_characteristics" },
