@@ -114,6 +114,8 @@
   #main-table .sc-score { border-right: none; }
   #main-table .sc-indiv { left: 24rem; }
   #main-table .sc-distrib { left: 33rem; }
+  #cat-table .sc-indiv { left: 24rem; }
+  #cat-table .sc-distrib { left: 33rem; }
 
   th.sc-rank, th.sc-model, th.sc-score, th.sc-indiv, th.sc-distrib {
     z-index: 5;
@@ -1557,6 +1559,7 @@ function renderCategory(cat) {
   };
   const { score: scoreLabel, arrow: defaultArrow } = labels[rankingMethod];
   const levelAbbr = { individual: "Indiv.", distributional: "Distrib." };
+  const hasBothLevels = catLevels.includes("individual") && catLevels.includes("distributional");
 
   // Build task groups: group scenarios by name, merging across levels
   const taskGroupMap = new Map(); // name -> { individual: scenario|null, distributional: scenario|null }
@@ -1594,6 +1597,17 @@ function renderCategory(cat) {
       <th class="sc-rank" rowspan="2" data-col="rank" data-type="num" data-direction="lower">Rank<span class="sort-arrow"></span></th>
       <th class="sc-model" rowspan="2" data-col="model" data-type="str">Model<span class="sort-arrow"></span></th>`;
 
+  if (hasBothLevels) {
+    html += `
+      <th class="sc-score sorted col-agg" rowspan="2" data-col="capability_overall" data-type="num" data-direction="${scoreDir}" data-sort-dir="${initSortDir}">Mean of Ind. and Dist. level<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>
+      <th class="sc-indiv col-agg" rowspan="2" data-col="capability_individual" data-type="num" data-direction="${scoreDir}">Indiv.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>
+      <th class="sc-distrib col-agg" rowspan="2" data-col="capability_distributional" data-type="num" data-direction="${scoreDir}">Distrib.<span class="th-sub">${scoreLabel}</span><span class="sort-arrow"></span></th>`;
+  } else {
+    const onlyLevel = catLevels[0] ?? "individual";
+    html += `
+      <th class="sc-score sorted col-agg" rowspan="2" data-col="capability_${onlyLevel}" data-type="num" data-direction="${scoreDir}" data-sort-dir="${initSortDir}">${levelNames[onlyLevel] ?? "Individual Level"}<span class="th-sub">${scoreLabel}</span><span class="sort-arrow">${defaultArrow}</span></th>`;
+  }
+
   // Row 1: task name groups (merged across levels when sharing same name)
   taskGroupOrder.forEach(name => {
     const g = taskGroupMap.get(name);
@@ -1620,9 +1634,41 @@ function renderCategory(cat) {
   rows.forEach((r, i) => {
     const cls = modelRowClass(r.model);
 
+    let fmtScore, barFn;
+    if (rankingMethod === "winrate") {
+      fmtScore = fmtWR;
+      barFn = (v) => wrBar(v, wrColor(v));
+    } else if (rankingMethod === "avgrank") {
+      fmtScore = fmtAvgRank;
+      barFn = (v) => rankBar(v, nModels);
+    } else {
+      fmtScore = fmtRating;
+      barFn = (v) => ratingBar(v, rows.map(rr => rr.sortScore));
+    }
+
     html += `<tr class="${cls}">
       <td class="sc-rank">${i + 1}</td>
       <td class="sc-model"><span class="model-name">${r.model.name}</span>${familyTag(r.model)}${effortTag(r.model)}</td>`;
+
+    if (hasBothLevels) {
+      const indiv = r.levelScores.individual;
+      const distrib = r.levelScores.distributional;
+      const indivBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.levelScores.individual))
+        : barFn;
+      const distribBarFn = (rankingMethod === "elo" || rankingMethod === "bt")
+        ? (v) => ratingBar(v, rows.map(rr => rr.levelScores.distributional))
+        : barFn;
+      html += `
+      <td class="sc-score col-agg">${barFn(r.sortScore)}${fmtScore(r.sortScore)}</td>
+      <td class="sc-indiv col-agg">${indivBarFn(indiv)}${fmtScore(indiv)}</td>
+      <td class="sc-distrib col-agg">${distribBarFn(distrib)}${fmtScore(distrib)}</td>`;
+    } else {
+      const onlyLevel = catLevels[0] ?? "individual";
+      const v = r.levelScores[onlyLevel] ?? r.sortScore;
+      html += `
+      <td class="sc-score col-agg">${barFn(v)}${fmtScore(v)}</td>`;
+    }
 
     // Raw scenario values in task-group order
     orderedScenarios.forEach(s => {
