@@ -298,10 +298,9 @@
   .partner-logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    min-height: 2rem;
-    padding: 0.15rem 0.45rem;
-    color: var(--fg);
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0.25rem 0.6rem;
     text-decoration: none;
     opacity: 0.82;
     transition: opacity 0.15s, transform 0.15s;
@@ -310,47 +309,27 @@
     opacity: 1;
     transform: translateY(-1px);
   }
-  .partner-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    line-height: 1;
+  .partner-logo img {
+    display: block;
+    max-width: 100%;
+    object-fit: contain;
   }
-  .partner-logo.umich {
-    color: #00274c;
-    font-weight: 700;
+  .partner-logo.umich img {
+    width: 210px;
+    height: auto;
   }
-  .partner-logo.umich .partner-mark {
-    width: 1.8rem;
-    height: 1.45rem;
-    background: #ffcb05;
-    color: #00274c;
-    font-size: 1.25rem;
-    font-family: Georgia, serif;
+  .partner-logo.stanford img {
+    width: auto;
+    height: 44px;
   }
-  .partner-logo.stanford {
-    color: #8c1515;
-    font-family: Georgia, serif;
-    font-size: 1rem;
-    font-weight: 700;
+  .partner-logo.moblab img {
+    width: 112px;
+    height: auto;
   }
-  .partner-logo.stanford .partner-mark {
-    width: 1.35rem;
-    height: 1.35rem;
-    border: 2px solid #8c1515;
-    color: #8c1515;
-    font-size: 1rem;
-  }
-  .partner-logo.moblab {
-    color: #2563eb;
-    font-weight: 800;
-  }
-  .partner-logo.moblab .partner-mark {
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
-    background: #2563eb;
+  @media (max-width: 700px) {
+    .partner-logo.umich img { width: 170px; }
+    .partner-logo.stanford img { height: 38px; }
+    .partner-logo.moblab img { width: 96px; }
   }
 
   #ranking-select {
@@ -483,16 +462,13 @@
   </div>
   <div class="partner-logos" aria-label="Partner institutions">
     <a class="partner-logo umich" href="https://umich.edu/" target="_blank" rel="noopener noreferrer" title="University of Michigan">
-      <span class="partner-mark" aria-hidden="true">M</span>
-      <span>University of Michigan</span>
+      <img src="assets/logos/umich-logo.png" alt="University of Michigan">
     </a>
     <a class="partner-logo stanford" href="https://www.stanford.edu/" target="_blank" rel="noopener noreferrer" title="Stanford University">
-      <span class="partner-mark" aria-hidden="true">S</span>
-      <span>Stanford University</span>
+      <img src="assets/logos/stanford-cardinal.svg" alt="Stanford University">
     </a>
     <a class="partner-logo moblab" href="https://moblab.com/" target="_blank" rel="noopener noreferrer" title="MobLab">
-      <span class="partner-mark" aria-hidden="true"></span>
-      <span>MobLab</span>
+      <img src="assets/logos/moblab-logo.svg" alt="MobLab">
     </a>
   </div>
 </div>
