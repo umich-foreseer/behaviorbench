@@ -287,6 +287,71 @@
     border-radius: 3px;
     margin-left: 0.2rem;
   }
+  .partner-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 0.85rem;
+  }
+  .partner-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2rem;
+    padding: 0.15rem 0.45rem;
+    color: var(--fg);
+    text-decoration: none;
+    opacity: 0.82;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .partner-logo:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  .partner-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .partner-logo.umich {
+    color: #00274c;
+    font-weight: 700;
+  }
+  .partner-logo.umich .partner-mark {
+    width: 1.8rem;
+    height: 1.45rem;
+    background: #ffcb05;
+    color: #00274c;
+    font-size: 1.25rem;
+    font-family: Georgia, serif;
+  }
+  .partner-logo.stanford {
+    color: #8c1515;
+    font-family: Georgia, serif;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .partner-logo.stanford .partner-mark {
+    width: 1.35rem;
+    height: 1.35rem;
+    border: 2px solid #8c1515;
+    color: #8c1515;
+    font-size: 1rem;
+  }
+  .partner-logo.moblab {
+    color: #2563eb;
+    font-weight: 800;
+  }
+  .partner-logo.moblab .partner-mark {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: #2563eb;
+  }
 
   #ranking-select {
     font-size: 0.82rem;
@@ -391,11 +456,10 @@
   <h1>BehaviorBench Leaderboards</h1>
   <p class="subtitle">A benchmark for foundation models on behavioral-science tasks, evaluated at the individual and distributional levels.</p>
   <div class="action-bar" aria-label="External resources">
-    <span class="action-btn placeholder-action" title="Paper (TBA)" aria-disabled="true">
+    <a class="action-btn" href="https://arxiv.org/abs/2606.24162" target="_blank" rel="noopener noreferrer" title="BehaviorBench paper on arXiv">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
       Paper
-      <span class="placeholder-tag">TBA</span>
-    </span>
+    </a>
     <a class="action-btn" href="https://huggingface.co/befm/BeFM1.5-4B" target="_blank" rel="noopener noreferrer" title="BeFM1.5-4B on Hugging Face">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/></svg>
       BeFM1.5-4B
@@ -415,6 +479,20 @@
     <a class="action-btn" href="https://huggingface.co/spaces/befm/BeFM" target="_blank" rel="noopener noreferrer" title="Chat with BeFM on Hugging Face">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 10h8"/><path d="M8 14h5"/></svg>
       Chat with BeFM
+    </a>
+  </div>
+  <div class="partner-logos" aria-label="Partner institutions">
+    <a class="partner-logo umich" href="https://umich.edu/" target="_blank" rel="noopener noreferrer" title="University of Michigan">
+      <span class="partner-mark" aria-hidden="true">M</span>
+      <span>University of Michigan</span>
+    </a>
+    <a class="partner-logo stanford" href="https://www.stanford.edu/" target="_blank" rel="noopener noreferrer" title="Stanford University">
+      <span class="partner-mark" aria-hidden="true">S</span>
+      <span>Stanford University</span>
+    </a>
+    <a class="partner-logo moblab" href="https://moblab.com/" target="_blank" rel="noopener noreferrer" title="MobLab">
+      <span class="partner-mark" aria-hidden="true"></span>
+      <span>MobLab</span>
     </a>
   </div>
 </div>
@@ -449,11 +527,14 @@
     </button>
   </div>
   <p class="citation-note">If you use BehaviorBench or BeFM in your work, please consider citing:</p>
-  <pre id="bibtex-block">@misc{behaviorbench2026,
-  title  = {{BehaviorBench}: Benchmarking Foundation Models for Behavioral Science Tasks},
-  author = {Huang, Jin* and Xie, Yutong* and Song, Wanli and Zhang, Xingjian and Yuan, Walter and Jackson, Matthew O. and Mei, Qiaozhu},
-  year   = {2026},
-  note   = {Preprint coming soon}
+  <pre id="bibtex-block">@misc{huang2026behaviorbenchbenchmarkingfoundationmodels,
+  title={BehaviorBench: Benchmarking Foundation Models for Behavioral Science Tasks},
+  author={Jin Huang and Yutong Xie and Wanli Song and Xingjian Zhang and Walter Yuan and Matthew O. Jackson and Qiaozhu Mei},
+  year={2026},
+  eprint={2606.24162},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2606.24162},
 }</pre>
 </section>
 
