@@ -312,9 +312,16 @@
     width: 210px;
     height: auto;
   }
+  .partner-logo.stanford {
+    gap: 0.45rem;
+    color: #8c1515;
+    font-family: Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
   .partner-logo.stanford img {
-    width: 150px;
-    height: auto;
+    width: auto;
+    height: 2rem;
   }
   .partner-logo.moblab img {
     width: 112px;
@@ -322,7 +329,8 @@
   }
   @media (max-width: 700px) {
     .partner-logo.umich img { width: 170px; }
-    .partner-logo.stanford img { width: 130px; }
+    .partner-logo.stanford { font-size: 1.15rem; }
+    .partner-logo.stanford img { height: 1.75rem; }
     .partner-logo.moblab img { width: 96px; }
   }
 
@@ -459,7 +467,8 @@
       <img src="assets/logos/umich-logo.png" alt="University of Michigan">
     </div>
     <div class="partner-logo stanford" aria-label="Stanford University">
-      <img src="assets/logos/stanford-wordmark.png" alt="Stanford University">
+      <img src="assets/logos/stanford-logo.svg" alt="">
+      <span>Stanford</span>
     </div>
     <div class="partner-logo moblab" aria-label="MobLab">
       <img src="assets/logos/moblab-logo.svg" alt="MobLab">
