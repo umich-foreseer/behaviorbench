@@ -301,13 +301,7 @@
     justify-content: center;
     min-height: 2.75rem;
     padding: 0.25rem 0.6rem;
-    text-decoration: none;
-    opacity: 0.82;
-    transition: opacity 0.15s, transform 0.15s;
-  }
-  .partner-logo:hover {
-    opacity: 1;
-    transform: translateY(-1px);
+    opacity: 0.92;
   }
   .partner-logo img {
     display: block;
@@ -319,8 +313,8 @@
     height: auto;
   }
   .partner-logo.stanford img {
-    width: auto;
-    height: 44px;
+    width: 150px;
+    height: auto;
   }
   .partner-logo.moblab img {
     width: 112px;
@@ -328,7 +322,7 @@
   }
   @media (max-width: 700px) {
     .partner-logo.umich img { width: 170px; }
-    .partner-logo.stanford img { height: 38px; }
+    .partner-logo.stanford img { width: 130px; }
     .partner-logo.moblab img { width: 96px; }
   }
 
@@ -461,15 +455,15 @@
     </a>
   </div>
   <div class="partner-logos" aria-label="Partner institutions">
-    <a class="partner-logo umich" href="https://umich.edu/" target="_blank" rel="noopener noreferrer" title="University of Michigan">
+    <div class="partner-logo umich" aria-label="University of Michigan">
       <img src="assets/logos/umich-logo.png" alt="University of Michigan">
-    </a>
-    <a class="partner-logo stanford" href="https://www.stanford.edu/" target="_blank" rel="noopener noreferrer" title="Stanford University">
-      <img src="assets/logos/stanford-cardinal.svg" alt="Stanford University">
-    </a>
-    <a class="partner-logo moblab" href="https://www.moblab.com/" target="_blank" rel="noopener noreferrer" title="MobLab">
+    </div>
+    <div class="partner-logo stanford" aria-label="Stanford University">
+      <img src="assets/logos/stanford-wordmark.png" alt="Stanford University">
+    </div>
+    <div class="partner-logo moblab" aria-label="MobLab">
       <img src="assets/logos/moblab-logo.svg" alt="MobLab">
-    </a>
+    </div>
   </div>
 </div>
 
