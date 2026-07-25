@@ -1,6 +1,8 @@
 // BeFM Leaderboard Data
 // Auto-generated on 2026-05-07 by generate_leaderboard_data.py
 // 24 models, n_v1 for MobLab/BigFive, full-set for IEO/workflow
+// +3 models (Tencent HY3, GLM-5.2, GLM-5.2 no-reasoning) evaluated 2026-07 on
+// full test files for all families (not the n_v1 subsample; see PR notes)
 
 var LEADERBOARD_DATA = {
   models: [
@@ -30,6 +32,9 @@ var LEADERBOARD_DATA = {
     { id: "deepseek_v3_2", name: "DeepSeek V3.2", family: "api", base: "DeepSeek-V3.2", cost: 1.5 },
     { id: "gemini_flash_lite", name: "Gemini 3.1 Flash", family: "api", base: "gemini-3.1-flash-lite-preview", cost: 0.46 },
     { id: "gemini_pro", name: "Gemini 3.1 Pro", family: "api", base: "gemini-3.1-pro-preview", cost: 7.13 },
+    { id: "hy3", name: "Tencent HY3", family: "api", base: "tencent/hy3", cost: 1.38 },
+    { id: "glm_5_2", name: "GLM-5.2", family: "api", base: "z-ai/glm-5.2", cost: 40 },
+    { id: "glm_5_2_noreason", name: "GLM-5.2 (none)", family: "api", base: "z-ai/glm-5.2", cost: 13.5 },
   ],
 
   scenarios: [
@@ -261,6 +266,31 @@ var LEADERBOARD_DATA = {
       ml_game: 22.1308, ml_multiround: 12.1231, ml_acrossgame: 9.6592, ho_pushpull: 15, ho_pp_multiround_wd: 15, ho_pp_acrossgame_wd: 15.3333, bf_pers_score_wdist: 4.38455, bf_acrossdim_wdist: 3.59805, bf_singleq_wdist: 0.75072, bf_missing_wdist: 0.36015, bf_sequential_wdist: 0.45981, bf_age_wdist: 1.667,
       // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
       ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 23.4, ho_pp_acrossgame_mae: 47.0667,
+    },
+    // Community runs 2026-07 (OpenRouter, provider-default settings, full test files)
+    hy3: {
+      // Individual
+      ml_multiround_mae: 16.8428, ml_acrossgame_mae: 27.1689, ho_pp_multiround_f1: 0.673, ho_pp_acrossgame_f1: 0.3378, bf_pers_score: 7.1904, bf_acrossdim: 7.8796, bf_singleq_acc: 0.2736, bf_missing_acc: 0.4597, bf_sequential_acc: 0.417, bf_age: 10.942, sg_winrate: 0.098, wf_bleurt: 0.4431, ho_ieo: 83.0645,
+      // Distributional
+      ml_game: 26.8873, ml_multiround: 8.6142, ml_acrossgame: 19.2349, ho_pushpull: 50.3, ho_pp_multiround_wd: 2.6, ho_pp_acrossgame_wd: 53.0667, bf_pers_score_wdist: 5.9465, bf_acrossdim_wdist: 5.05, bf_singleq_wdist: 0.8365, bf_missing_wdist: 0.4407, bf_sequential_wdist: 0.4619, bf_age_wdist: 5.018,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 29.8, ho_pp_acrossgame_mae: 55.2,
+    },
+    glm_5_2: {
+      // Individual
+      ml_multiround_mae: 17.1992, ml_acrossgame_mae: 22.1568, ho_pp_multiround_f1: 0.6793, ho_pp_acrossgame_f1: 0.3649, bf_pers_score: 6.9574, bf_acrossdim: 7.3966, bf_singleq_acc: 0.2703, bf_missing_acc: 0.4594, bf_sequential_acc: 0.4116, bf_age: 10.5185, sg_winrate: 0.1565, wf_bleurt: 0.4581, ho_ieo: 91.129,
+      // Distributional
+      ml_game: 17.0038, ml_multiround: 10.928, ml_acrossgame: 14.7643, ho_pushpull: 47.7, ho_pp_multiround_wd: 4.4, ho_pp_acrossgame_wd: 50.1333, bf_pers_score_wdist: 5.4725, bf_acrossdim_wdist: 4.5116, bf_singleq_wdist: 0.7652, bf_missing_wdist: 0.3841, bf_sequential_wdist: 0.4539, bf_age_wdist: 4.2663,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 30.4, ho_pp_acrossgame_mae: 54.4,
+    },
+    glm_5_2_noreason: {
+      // Individual
+      ml_multiround_mae: 17.6816, ml_acrossgame_mae: 24.3355, ho_pp_multiround_f1: 0.6336, ho_pp_acrossgame_f1: 0.3607, bf_pers_score: 6.97, bf_acrossdim: 7.4222, bf_singleq_acc: 0.276, bf_missing_acc: 0.4567, bf_sequential_acc: 0.3973, bf_age: 9.6507, sg_winrate: 0.1431, wf_bleurt: 0.4579, ho_ieo: 77.4194,
+      // Distributional
+      ml_game: 16.3574, ml_multiround: 8.4667, ml_acrossgame: 13.5444, ho_pushpull: 48.4, ho_pp_multiround_wd: 16.2, ho_pp_acrossgame_wd: 48.9333, bf_pers_score_wdist: 5.3547, bf_acrossdim_wdist: 3.7514, bf_singleq_wdist: 0.7535, bf_missing_wdist: 0.4059, bf_sequential_wdist: 0.4177, bf_age_wdist: 4.8719,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 36.2, ho_pp_acrossgame_mae: 55.3333,
     },
   },
 };
