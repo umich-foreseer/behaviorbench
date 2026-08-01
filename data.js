@@ -2,7 +2,9 @@
 // Auto-generated on 2026-05-07 by generate_leaderboard_data.py
 // 24 models, n_v1 for MobLab/BigFive, full-set for IEO/workflow
 // +1 model (GLM-5.2) evaluated 2026-07 at default settings (reasoning on) on
-// full test files for all families (not the n_v1 subsample; see PR notes)
+// full test files for all families (not the n_v1 subsample; see PR notes).
+// ho_ieo is the mean of 5 independent runs (571/620), matching the k/620
+// denominators of the preexisting entries.
 
 var LEADERBOARD_DATA = {
   models: [
@@ -268,7 +270,7 @@ var LEADERBOARD_DATA = {
     // Community runs 2026-07 (OpenRouter, provider-default settings, full test files)
     glm_5_2: {
       // Individual
-      ml_multiround_mae: 17.1992, ml_acrossgame_mae: 22.1568, ho_pp_multiround_f1: 0.6793, ho_pp_acrossgame_f1: 0.3649, bf_pers_score: 6.9574, bf_acrossdim: 7.3966, bf_singleq_acc: 0.2703, bf_missing_acc: 0.4594, bf_sequential_acc: 0.4116, bf_age: 10.5185, sg_winrate: 0.1565, wf_bleurt: 0.4581, ho_ieo: 91.129,
+      ml_multiround_mae: 17.1992, ml_acrossgame_mae: 22.1568, ho_pp_multiround_f1: 0.6793, ho_pp_acrossgame_f1: 0.3649, bf_pers_score: 6.9574, bf_acrossdim: 7.3966, bf_singleq_acc: 0.2703, bf_missing_acc: 0.4594, bf_sequential_acc: 0.4116, bf_age: 10.5185, sg_winrate: 0.1565, wf_bleurt: 0.4581, ho_ieo: 92.0968,
       // Distributional
       ml_game: 17.0038, ml_multiround: 10.928, ml_acrossgame: 14.7643, ho_pushpull: 47.7, ho_pp_multiround_wd: 4.4, ho_pp_acrossgame_wd: 50.1333, bf_pers_score_wdist: 5.4725, bf_acrossdim_wdist: 4.5116, bf_singleq_wdist: 0.7652, bf_missing_wdist: 0.3841, bf_sequential_wdist: 0.4539, bf_age_wdist: 4.2663,
       // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
