@@ -1,6 +1,12 @@
 // BeFM Leaderboard Data
 // Auto-generated on 2026-05-07 by generate_leaderboard_data.py
 // 24 models, n_v1 for MobLab/BigFive, full-set for IEO/workflow
+// +2 models (GLM-5.2, Tencent HY3) evaluated 2026-07/08 at default settings
+// (reasoning on for both) on full test files for all families (not the n_v1
+// subsample; see PR notes). ho_ieo cells are means of 5 independent runs
+// (GLM 571/620, HY3 572/620), matching the k/620 denominators of the
+// preexisting entries. HY3 was re-run 2026-08 after its endpoint switched to
+// reasoning-by-default; the July no-reasoning HY3 results are not included.
 
 var LEADERBOARD_DATA = {
   models: [
@@ -30,6 +36,8 @@ var LEADERBOARD_DATA = {
     { id: "deepseek_v3_2", name: "DeepSeek V3.2", family: "api", base: "DeepSeek-V3.2", cost: 1.5 },
     { id: "gemini_flash_lite", name: "Gemini 3.1 Flash", family: "api", base: "gemini-3.1-flash-lite-preview", cost: 0.46 },
     { id: "gemini_pro", name: "Gemini 3.1 Pro", family: "api", base: "gemini-3.1-pro-preview", cost: 7.13 },
+    { id: "hy3", name: "Tencent HY3", family: "api", base: "tencent/hy3", cost: 44 },
+    { id: "glm_5_2", name: "GLM-5.2", family: "api", base: "z-ai/glm-5.2", cost: 40 },
   ],
 
   scenarios: [
@@ -261,6 +269,23 @@ var LEADERBOARD_DATA = {
       ml_game: 22.1308, ml_multiround: 12.1231, ml_acrossgame: 9.6592, ho_pushpull: 15, ho_pp_multiround_wd: 15, ho_pp_acrossgame_wd: 15.3333, bf_pers_score_wdist: 4.38455, bf_acrossdim_wdist: 3.59805, bf_singleq_wdist: 0.75072, bf_missing_wdist: 0.36015, bf_sequential_wdist: 0.45981, bf_age_wdist: 1.667,
       // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
       ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 23.4, ho_pp_acrossgame_mae: 47.0667,
+    },
+    // Community runs 2026-07 (OpenRouter, provider-default settings, full test files)
+    glm_5_2: {
+      // Individual
+      ml_multiround_mae: 17.1992, ml_acrossgame_mae: 22.1568, ho_pp_multiround_f1: 0.6793, ho_pp_acrossgame_f1: 0.3649, bf_pers_score: 6.9574, bf_acrossdim: 7.3966, bf_singleq_acc: 0.2703, bf_missing_acc: 0.4594, bf_sequential_acc: 0.4116, bf_age: 10.5185, sg_winrate: 0.1565, wf_bleurt: 0.4581, ho_ieo: 92.0968,
+      // Distributional
+      ml_game: 17.0038, ml_multiround: 10.928, ml_acrossgame: 14.7643, ho_pushpull: 47.7, ho_pp_multiround_wd: 4.4, ho_pp_acrossgame_wd: 50.1333, bf_pers_score_wdist: 5.4725, bf_acrossdim_wdist: 4.5116, bf_singleq_wdist: 0.7652, bf_missing_wdist: 0.3841, bf_sequential_wdist: 0.4539, bf_age_wdist: 4.2663,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 30.4, ho_pp_acrossgame_mae: 54.4,
+    },
+    hy3: {
+      // Individual
+      ml_multiround_mae: 20.998, ml_acrossgame_mae: 24.9573, ho_pp_multiround_f1: 0.4625, ho_pp_acrossgame_f1: 0.4319, bf_pers_score: 7.1142, bf_acrossdim: 7.6886, bf_singleq_acc: 0.2663, bf_missing_acc: 0.4509, bf_sequential_acc: 0.4188, bf_age: 13.925, sg_winrate: 0.106, wf_bleurt: 0.4725, ho_ieo: 92.2581,
+      // Distributional
+      ml_game: 28.7108, ml_multiround: 13.2306, ml_acrossgame: 11.9114, ho_pushpull: 42.4, ho_pp_multiround_wd: 32.8, ho_pp_acrossgame_wd: 32.9333, bf_pers_score_wdist: 4.8907, bf_acrossdim_wdist: 5.4263, bf_singleq_wdist: 0.7993, bf_missing_wdist: 0.4023, bf_sequential_wdist: 0.4442, bf_age_wdist: 7.801,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 34.4, ho_pp_acrossgame_mae: 45.2,
     },
   },
 };
