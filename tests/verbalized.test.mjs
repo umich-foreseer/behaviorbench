@@ -154,13 +154,10 @@ test("the summary the prose is built from matches the data", () => {
   assert.equal(SUMMARY.nModels, VD.models.length);
   assert.equal(SUMMARY.nTasks, 9);
   assert.equal(SUMMARY.repeats, VD.repeats);
-  assert.equal(SUMMARY.conditions, VD.tasks.reduce((s, t) => s + t.conditions, 0));
 });
 
 test("no count the page computes is typed into its source", () => {
-  for (const n of [SUMMARY.nModels, SUMMARY.conditions]) {
-    assert.ok(!new RegExp(`\\b${n} (models|conditions)\\b`).test(HTML), `literal "${n}" in verbalized.html`);
-  }
+  assert.ok(!new RegExp(`\\b${SUMMARY.nModels}\\b`).test(HTML), `literal model count in verbalized.html`);
   assert.ok(!/\basked (five|5) times\b/.test(HTML), "literal repeat count in verbalized.html");
   assert.ok(/asked \$\{s\.repeats\} times/.test(HTML), "the repeat sentence should read VERBALIZED_DATA.repeats");
 });

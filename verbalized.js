@@ -141,7 +141,6 @@ function vdSummary(VD, table) {
     nModels: table.rows.length,
     nTasks: table.tasks.length,
     repeats: VD.repeats,
-    conditions: table.tasks.reduce((s, t) => s + t.conditions, 0),
   };
 }
 

@@ -172,7 +172,7 @@
 
 <script src="data.js?v=4"></script>
 <script src="data_verbalized.js?v=1"></script>
-<script src="verbalized.js?v=2"></script>
+<script src="verbalized.js?v=3"></script>
 <script>
 "use strict";
 
@@ -217,11 +217,7 @@ function renderIntro() {
     once per individual, the answers are pooled, and the pooled distribution is compared with the human one.
     <strong>Verbalized distributions</strong> skip the sampling: the model is asked one question per condition
     (one game, one survey item, one personality dimension) and writes out the whole population distribution as text.
-    Each question is asked ${s.repeats} times and the distances are averaged.</p>
-    <p>Both settings use the same metric, the Wasserstein-1 distance (W Distance) between the model's distribution and the
-    human distribution, on the same scale: games rescaled to 0 to 100, surveys, personality and age on their native scales.
-    Lower is better. This page holds the ${s.nModels} models with a run in both settings, over ${s.nTasks} tasks
-    and ${s.conditions} conditions.</p>`;
+    Each question is asked ${s.repeats} times and the distances are averaged.</p>`;
 }
 
 function renderInfoBar() {
