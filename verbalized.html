@@ -144,21 +144,6 @@
     min-width: 2px;
   }
 
-  .legend {
-    margin-top: 1.5rem;
-    padding: 1rem 1.2rem;
-    background: #f9fafb;
-    border-radius: 6px;
-    font-size: 0.82rem;
-    color: #4b5563;
-    line-height: 1.7;
-    max-width: 62rem;
-  }
-  .legend strong { color: var(--fg); }
-  .legend ol { padding-left: 1.3rem; }
-  .legend li { margin-bottom: 0.45rem; }
-  .legend a { color: var(--accent); }
-  .legend .ref { margin-top: 0.6rem; color: #6b7280; }
   code {
     background: var(--header-bg);
     padding: 0.1rem 0.35rem;
@@ -185,16 +170,14 @@
 
 <div id="content"></div>
 
-<div class="legend" id="legend"></div>
-
 <script src="data.js?v=4"></script>
 <script src="data_verbalized.js?v=1"></script>
-<script src="verbalized.js?v=1"></script>
+<script src="verbalized.js?v=2"></script>
 <script>
 "use strict";
 
 const TABLE = vdBuild(LEADERBOARD_DATA, VERBALIZED_DATA);
-const SUMMARY = vdSummary(LEADERBOARD_DATA, VERBALIZED_DATA, TABLE);
+const SUMMARY = vdSummary(VERBALIZED_DATA, TABLE);
 let showDetails = false;
 
 function esc(s) {
@@ -225,12 +208,6 @@ function familyTag(row) {
 
 function pct(v) {
   return v === 1 ? "100%" : (v * 100).toFixed(1) + "%";
-}
-
-// Small counts read better as words in prose; larger ones stay digits.
-function numWord(n) {
-  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-  return n != null && n >= 0 && n < words.length ? words[n] : String(n);
 }
 
 function renderIntro() {
@@ -326,34 +303,6 @@ function renderTable() {
   document.getElementById("content").innerHTML = html;
 }
 
-function renderLegend() {
-  const s = SUMMARY;
-  const flagged = s.fullyFlagged.length
-    ? ` ${s.fullyFlagged.map(esc).join(" and ")} never produced a readable distribution, so ${s.fullyFlagged.length === 1 ? "its row sits" : "their rows sit"} exactly on the Uniform distribution reference row.`
-    : "";
-  const reasoning = s.nonDefaultReasoning.length
-    ? ` except ${s.nonDefaultReasoning.map(esc).join(", ")}, which ran with that reasoning effort in both settings`
-    : "";
-  const befmRuns = s.befmRuns != null ? `${numWord(s.befmRuns)}-run mean` : "multi-run mean";
-  document.getElementById("legend").innerHTML = `
-    <strong>How to read this table</strong>
-    <ol>
-      <li><strong>One pool for both columns.</strong> Both mean win rates are computed over the ${s.nModels} models on this page and its ${s.nTasks} tasks,
-        so a model's simulated rank here can differ from its rank on the main leaderboard's Distributional tab, whose pool is ${s.mainModels} models.
-        The simulated cells themselves are the main leaderboard's cells.</li>
-      <li><strong>Push/Pull is inside the game tasks.</strong> The ${numWord(s.nGameTasks)} economic-game tasks average ${s.gamesPerTask} games including Push/Pull in both settings:
-        the main leaderboard merges Push/Pull into these cells, and the verbalized runs contain Push/Pull as one of their conditions.</li>
-      <li><strong>Runs.</strong> Verbalized numbers are one run with ${s.repeats} repeats per condition. Simulated numbers for Be.FM-1.5 are the ${befmRuns} shown on the
-        main leaderboard; every other model is a single run. Reasoning settings are each provider's default in both settings (the main leaderboard's chips name those defaults)${reasoning}.</li>
-      <li><strong>Failed parses.</strong> A verbalized answer that cannot be read as a distribution is scored as the uniform distribution over the answer space.
-        In the task details, a cell with any such answers carries a <sup style="color:#b45309">&dagger;</sup>; hover it for the rate.${flagged}</li>
-      <li><strong>Reference rows</strong> (task details). Uniform distribution: the distance of the uniform distribution from the human one, what a model scores by knowing nothing.
-        Binning floor: the distance between the raw human answers and their binned representation, the lowest a verbalized answer can score on that task.</li>
-    </ol>
-    <p class="ref">The verbalized setting follows the Verbalize method of Meister et al. (2025), Benchmarking Distributional Alignment of Large Language Models, NAACL 2025.
-      Data generated ${s.generated}.</p>`;
-}
-
 // Column sorting, as on the main page: first click sorts best-first, later
 // clicks flip. Rows carry data-sort-val so bars and flags do not get in the way.
 function setupSorting() {
@@ -425,7 +374,6 @@ function render() {
 }
 
 renderIntro();
-renderLegend();
 render();
 </script>
 </body>

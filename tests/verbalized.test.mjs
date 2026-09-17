@@ -24,7 +24,7 @@ for (const f of ["data.js", "data_verbalized.js", "verbalized.js"]) {
 const LB = ctx.LEADERBOARD_DATA;
 const VD = ctx.VERBALIZED_DATA;
 const TABLE = ctx.vdBuild(LB, VD);
-const SUMMARY = ctx.vdSummary(LB, VD, TABLE);
+const SUMMARY = ctx.vdSummary(VD, TABLE);
 const TASK_IDS = VD.tasks.map(t => t.id);
 
 const HTML = read("verbalized.html");
@@ -145,7 +145,6 @@ test("reference rows: uniform above the binning floor, fully failed rows sit on 
   for (const r of fullyFlagged) {
     for (const t of TASK_IDS) assert.ok(Math.abs(r.verb[t] - VD.reference.uniform[t]) < 1e-6, `${r.id} ${t}`);
   }
-  assert.deepEqual(SUMMARY.fullyFlagged, fullyFlagged.map(r => r.name));
   for (const [mid, flags] of Object.entries(VD.failedParse)) {
     for (const [t, rate] of Object.entries(flags)) assert.ok(rate > 0 && rate <= 1, `${mid} ${t}`);
   }
@@ -156,22 +155,14 @@ test("the summary the prose is built from matches the data", () => {
   assert.equal(SUMMARY.nTasks, 9);
   assert.equal(SUMMARY.repeats, VD.repeats);
   assert.equal(SUMMARY.conditions, VD.tasks.reduce((s, t) => s + t.conditions, 0));
-  assert.equal(SUMMARY.gamesPerTask, "9/8/9");
-  assert.equal(SUMMARY.mainModels, LB.models.filter(m => !m.id.endsWith("_5runs")).length);
-  assert.ok(SUMMARY.mainModels > SUMMARY.nModels, "the main board should be the larger pool");
-  assert.deepEqual(SUMMARY.nonDefaultReasoning, VD.models.filter(m => m.reasoningEffort).map(m => `${m.name} (${m.reasoningEffort})`));
 });
 
 test("no count the page computes is typed into its source", () => {
-  for (const n of [SUMMARY.nModels, SUMMARY.mainModels, SUMMARY.conditions]) {
+  for (const n of [SUMMARY.nModels, SUMMARY.conditions]) {
     assert.ok(!new RegExp(`\\b${n} (models|conditions)\\b`).test(HTML), `literal "${n}" in verbalized.html`);
   }
-  assert.ok(!/\b9\/8\/9\b/.test(HTML), "literal games-per-task in verbalized.html");
-  assert.ok(!/\b(five|5) repeats\b/.test(HTML), "literal repeat count in verbalized.html");
-  assert.ok(!/\b(three|3) economic-game tasks\b/.test(HTML), "literal game-task count in verbalized.html");
-  assert.ok(!/\b(five|5)-run mean\b/.test(HTML), "literal Be.FM run count in verbalized.html");
-  assert.equal(SUMMARY.nGameTasks, VD.tasks.filter(t => t.family === "games").length);
-  assert.equal(SUMMARY.befmRuns, 5, "the five-run sibling should be read off data.js");
+  assert.ok(!/\basked (five|5) times\b/.test(HTML), "literal repeat count in verbalized.html");
+  assert.ok(/asked \$\{s\.repeats\} times/.test(HTML), "the repeat sentence should read VERBALIZED_DATA.repeats");
 });
 
 test("house style: no em dashes on the new page", () => {

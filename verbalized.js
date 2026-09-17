@@ -136,32 +136,12 @@ function vdBuild(LB, VD) {
 }
 
 // The numbers the page prints in prose, derived from the data rather than typed.
-function vdSummary(LB, VD, table) {
-  const games = table.tasks.filter(t => t.family === "games");
+function vdSummary(VD, table) {
   return {
-    generated: VD.generated,
     nModels: table.rows.length,
     nTasks: table.tasks.length,
     repeats: VD.repeats,
     conditions: table.tasks.reduce((s, t) => s + t.conditions, 0),
-    gamesPerTask: games.map(t => t.conditions).join("/"),
-    // Rows the main leaderboard prints: the "_5runs" siblings are collapsed
-    // into their base row there, so they are not separate models.
-    mainModels: LB.models.filter(m => !/_5runs$/.test(m.id)).length,
-    nGameTasks: games.length,
-    // How many simulated runs the Be.FM-1.5 rows average, read off the
-    // "(5 runs, mean)" sibling's name in data.js rather than typed.
-    befmRuns: (() => {
-      const sib = LB.models.find(m => /_5runs$/.test(m.id));
-      const m = sib && sib.name.match(/\((\d+)\s*runs?/i);
-      return m ? Number(m[1]) : null;
-    })(),
-    fullyFlagged: table.rows
-      .filter(r => table.tasks.every(t => r.flags[t.id] === 1))
-      .map(r => r.name),
-    nonDefaultReasoning: VD.models
-      .filter(m => m.reasoningEffort != null)
-      .map(m => m.name + " (" + m.reasoningEffort + ")"),
   };
 }
 
