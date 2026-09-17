@@ -86,5 +86,9 @@
 <h2>ELO Rating (alternative ranking)</h2>
 <p>Each task generates pairwise matchups (ties counted as draws). Matchups are processed with K&nbsp;=&nbsp;32 and initial rating 1500, shuffled 200 times with a fixed seed and averaged. Reported separately for Individual and Distributional.</p>
 
+<h2>Verbalized vs. simulated distributions</h2>
+<p>The <a href="verbalized.html" style="color:var(--accent)">Verbalized vs. Simulated Distributions</a> page scores the distributional tasks a second way. In the simulated setting, the one the Distributional tab reports, the model answers once per individual and the pooled answers are compared with the human distribution. In the verbalized setting the model is asked once per condition to write out the population distribution itself, with no sampling; each question is asked several times and the distances are averaged, and an answer that cannot be read as a distribution is scored as the uniform distribution over the answer space. Both settings use the same Wasserstein-1 distance on the same scale.</p>
+<p>Both mean win rates on that page use the formula above, computed over the models that have a run in both settings. That pool is smaller than the leaderboard's, so the simulated ranks there are not the Distributional ranks here, although the simulated cells are the same numbers.</p>
+
 </body>
 </html>

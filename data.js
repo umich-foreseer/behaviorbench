@@ -1,6 +1,6 @@
 // BeFM Leaderboard Data
-// Auto-generated on 2026-05-07 by generate_leaderboard_data.py
-// 24 models, n_v1 for MobLab/BigFive, full-set for IEO/workflow
+// Auto-generated on 2026-09-17 by generate_leaderboard_data.py
+// 30 models, n_v1 for MobLab/BigFive, full-set for IEO/workflow
 
 var LEADERBOARD_DATA = {
   models: [
@@ -14,6 +14,7 @@ var LEADERBOARD_DATA = {
     { id: "befm15_70b_v3", name: "BeFM1.5-70B (T=0.6)", family: "befm", base: "BeFM1.5-70B-v3", cost: 0 },
     { id: "befm15_70b_v3_5runs", name: "BeFM1.5-70B (5 runs, mean)", family: "befm", base: "BeFM1.5-70B-v3", cost: 0 },
     { id: "centaur_70b", name: "Centaur-70B (T=0.6)", family: "general", base: "marcelbinz/Llama-3.1-Centaur-70B", cost: 0 },
+    { id: "osim_8b", name: "OSim-8B (T=0.6)", family: "general", base: "cmu-lti/osim-8b", cost: 0 },
     { id: "socrates_llama3_8b_sft", name: "Socrates-Llama3-8B-SFT (T=0.6)", family: "general", base: "socratesft/llama3-8b-sft", cost: 0 },
     { id: "socrates_llama3_8b_dpo", name: "Socrates-Llama3-8B-DPO (T=0.6)", family: "general", base: "socratesft/llama3-8b-dpo", cost: 0 },
     { id: "socrates_qwen25_14b_sft", name: "Socrates-Qwen-14B-SFT (T=0.6)", family: "general", base: "socratesft/qwen2.5-14b-sft", cost: 0 },
@@ -25,11 +26,16 @@ var LEADERBOARD_DATA = {
     { id: "gpt5_4_mini_high", name: "GPT 5.4 mini (high)", family: "api", base: "gpt-5.4-mini", cost: 2.08 },
     { id: "gpt4_1", name: "GPT 4.1", family: "api", base: "gpt-4.1", cost: 10.39 },
     { id: "claude_opus", name: "Claude Opus 4.6", family: "api", base: "claude-opus-4-6", cost: 90.65 },
+    { id: "claude_opus_5", name: "Claude Opus 5", family: "api", base: "claude-opus-5", cost: 108.77 },
     { id: "claude_sonnet", name: "Claude Sonnet 4.6", family: "api", base: "claude-sonnet-4-6", cost: 18.13 },
     { id: "claude_haiku", name: "Claude Haiku 4.5", family: "api", base: "claude-haiku-4-5", cost: 4.83 },
     { id: "deepseek_v3_2", name: "DeepSeek V3.2", family: "api", base: "DeepSeek-V3.2", cost: 1.5 },
     { id: "gemini_flash_lite", name: "Gemini 3.1 Flash", family: "api", base: "gemini-3.1-flash-lite-preview", cost: 0.46 },
     { id: "gemini_pro", name: "Gemini 3.1 Pro", family: "api", base: "gemini-3.1-pro-preview", cost: 7.13 },
+    { id: "gpt5_6_terra", name: "GPT 5.6 Terra", family: "api", base: "gpt-5.6-terra", cost: 13.4 },
+    { id: "gpt5_6_sol", name: "GPT 5.6 Sol", family: "api", base: "gpt-5.6-sol", cost: 26.8 },
+    { id: "glm_5_2", name: "GLM-5.2", family: "api", base: "z-ai/glm-5.2", cost: 0 },
+    { id: "hy3", name: "HY3 (high)", family: "api", base: "tencent/hy3", cost: 0 },
   ],
 
   scenarios: [
@@ -142,6 +148,14 @@ var LEADERBOARD_DATA = {
       // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
       ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 34.6, ho_pp_acrossgame_mae: 45.6,
     },
+    osim_8b: {
+      // Individual
+      ml_multiround_mae: 20.8454, ml_acrossgame_mae: 27.427, ho_pp_multiround_f1: 0.5794, ho_pp_acrossgame_f1: 0.4008, bf_pers_score: 7.00765, bf_acrossdim: 7.47596, bf_singleq_acc: 0.29435, bf_missing_acc: 0.3783, bf_sequential_acc: 0.37543, bf_age: 10.918, sg_winrate: 0.139, wf_bleurt: 0.4495, ho_ieo: 68.5484,
+      // Distributional
+      ml_game: 20.7445, ml_multiround: 12.497, ml_acrossgame: 19.2264, ho_pushpull: 30.7, ho_pp_multiround_wd: 12, ho_pp_acrossgame_wd: 37.0667, bf_pers_score_wdist: 5.68788, bf_acrossdim_wdist: 5.13004, bf_singleq_wdist: 0.89629, bf_missing_wdist: 0.595, bf_sequential_wdist: 0.63187, bf_age_wdist: 9.042,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 35.6, ho_pp_acrossgame_mae: 45.3333,
+    },
     socrates_llama3_8b_sft: {
       // Individual
       ml_multiround_mae: 30.9131, ml_acrossgame_mae: 29.906, ho_pp_multiround_f1: 0, ho_pp_acrossgame_f1: 0, bf_pers_score: 13.296, bf_acrossdim: 12.38867, bf_singleq_acc: 0.24042, bf_missing_acc: 0.24029, bf_sequential_acc: 0.23519, bf_age: 12.634, sg_winrate: 0.021, wf_bleurt: 0.026, ho_ieo: 0,
@@ -222,6 +236,14 @@ var LEADERBOARD_DATA = {
       // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
       ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 32.4, ho_pp_acrossgame_mae: 56.1333,
     },
+    claude_opus_5: {
+      // Individual
+      ml_multiround_mae: 17.0435, ml_acrossgame_mae: 22.564, ho_pp_multiround_f1: 0.7315, ho_pp_acrossgame_f1: 0.465, bf_pers_score: 6.31287, bf_acrossdim: 6.03893, bf_singleq_acc: 0.30694, bf_missing_acc: 0.49032, bf_sequential_acc: 0.40561, bf_age: 9.135, sg_winrate: 0.163, wf_bleurt: 0.4403, ho_ieo: 95.1613,
+      // Distributional
+      ml_game: 22.9604, ml_multiround: 11.379, ml_acrossgame: 13.5901, ho_pushpull: 57, ho_pp_multiround_wd: 12.6, ho_pp_acrossgame_wd: 29.7333, bf_pers_score_wdist: 4.95995, bf_acrossdim_wdist: 3.65383, bf_singleq_wdist: 0.72789, bf_missing_wdist: 0.34452, bf_sequential_wdist: 0.4776, bf_age_wdist: 3.699,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 22.6, ho_pp_acrossgame_mae: 51.8667,
+    },
     claude_sonnet: {
       // Individual
       ml_multiround_mae: 17.2954, ml_acrossgame_mae: 21.5531, ho_pp_multiround_f1: 0.6875, ho_pp_acrossgame_f1: 0.3525, bf_pers_score: 7.58442, bf_acrossdim: 7.2025, bf_singleq_acc: 0.28608, bf_missing_acc: 0.4666, bf_sequential_acc: 0.4184, bf_age: 14.498, sg_winrate: 0.169, wf_bleurt: 0.4725, ho_ieo: 83.0645,
@@ -261,6 +283,38 @@ var LEADERBOARD_DATA = {
       ml_game: 22.1308, ml_multiround: 12.1231, ml_acrossgame: 9.6592, ho_pushpull: 15, ho_pp_multiround_wd: 15, ho_pp_acrossgame_wd: 15.3333, bf_pers_score_wdist: 4.38455, bf_acrossdim_wdist: 3.59805, bf_singleq_wdist: 0.75072, bf_missing_wdist: 0.36015, bf_sequential_wdist: 0.45981, bf_age_wdist: 1.667,
       // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
       ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 23.4, ho_pp_acrossgame_mae: 47.0667,
+    },
+    gpt5_6_terra: {
+      // Individual
+      ml_multiround_mae: 19.5565, ml_acrossgame_mae: 24.9787, ho_pp_multiround_f1: 0.425, ho_pp_acrossgame_f1: 0.4328, bf_pers_score: 7.52234, bf_acrossdim: 7.23327, bf_singleq_acc: 0.30669, bf_missing_acc: 0.47297, bf_sequential_acc: 0.41022, bf_age: 10.00506, sg_winrate: 0.106, wf_bleurt: 0.465, ho_ieo: 92.7419,
+      // Distributional
+      ml_game: 22.8252, ml_multiround: 11.3045, ml_acrossgame: 12.5948, ho_pushpull: 42.5, ho_pp_multiround_wd: 32.8, ho_pp_acrossgame_wd: 33.0667, bf_pers_score_wdist: 6.73269, bf_acrossdim_wdist: 4.58648, bf_singleq_wdist: 0.9024, bf_missing_wdist: 0.40473, bf_sequential_wdist: 0.47626, bf_age_wdist: 3.14271,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 36.8, ho_pp_acrossgame_mae: 45.0667,
+    },
+    gpt5_6_sol: {
+      // Individual
+      ml_multiround_mae: 20.1417, ml_acrossgame_mae: 23.2106, ho_pp_multiround_f1: 0.4719, ho_pp_acrossgame_f1: 0.4244, bf_pers_score: 7.61499, bf_acrossdim: 7.00923, bf_singleq_acc: 0.32407, bf_missing_acc: 0.48024, bf_sequential_acc: 0.43125, bf_age: 11.54, sg_winrate: 0.103, wf_bleurt: 0.4682, ho_ieo: 94.8387,
+      // Distributional
+      ml_game: 22.6092, ml_multiround: 13.932, ml_acrossgame: 10.4902, ho_pushpull: 43, ho_pp_multiround_wd: 31.2, ho_pp_acrossgame_wd: 36.2667, bf_pers_score_wdist: 6.83879, bf_acrossdim_wdist: 4.3936, bf_singleq_wdist: 0.88175, bf_missing_wdist: 0.39832, bf_sequential_wdist: 0.46367, bf_age_wdist: 7.188,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 34.8, ho_pp_acrossgame_mae: 44,
+    },
+    glm_5_2: {
+      // Individual
+      ml_multiround_mae: 17.1992, ml_acrossgame_mae: 22.1568, ho_pp_multiround_f1: 0.6793, ho_pp_acrossgame_f1: 0.3649, bf_pers_score: 6.95741, bf_acrossdim: 7.39661, bf_singleq_acc: 0.27034, bf_missing_acc: 0.45938, bf_sequential_acc: 0.4116, bf_age: 10.51852, sg_winrate: 0.1565, wf_bleurt: 0.4581, ho_ieo: 92.7419,
+      // Distributional
+      ml_game: 17.0038, ml_multiround: 10.928, ml_acrossgame: 14.7643, ho_pushpull: 47.7, ho_pp_multiround_wd: 4.4, ho_pp_acrossgame_wd: 50.1333, bf_pers_score_wdist: 5.47246, bf_acrossdim_wdist: 4.51165, bf_singleq_wdist: 0.76518, bf_missing_wdist: 0.38408, bf_sequential_wdist: 0.45387, bf_age_wdist: 4.26627,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 30.4, ho_pp_acrossgame_mae: 54.4,
+    },
+    hy3: {
+      // Individual
+      ml_multiround_mae: 21.2044, ml_acrossgame_mae: 24.721, ho_pp_multiround_f1: 0.4448, ho_pp_acrossgame_f1: 0.4212, bf_pers_score: 7.10699, bf_acrossdim: 7.69579, bf_singleq_acc: 0.26986, bf_missing_acc: 0.45645, bf_sequential_acc: 0.42146, bf_age: 13.939, sg_winrate: 0.102, wf_bleurt: 0.4736, ho_ieo: 91.2903,
+      // Distributional
+      ml_game: 28.4249, ml_multiround: 13.3388, ml_acrossgame: 11.6924, ho_pushpull: 42.6, ho_pp_multiround_wd: 33, ho_pp_acrossgame_wd: 32.2667, bf_pers_score_wdist: 4.91124, bf_acrossdim_wdist: 5.32447, bf_singleq_wdist: 0.79742, bf_missing_wdist: 0.40851, bf_sequential_wdist: 0.46386, bf_age_wdist: 7.213,
+      // Merge Push/Pull extras (data-only; consumed by leaderboard toggle)
+      ml_multiround_mae_n: 7, ml_acrossgame_mae_n: 8, ml_multiround_n: 7, ml_acrossgame_n: 8, ml_game_n: 8, ho_pp_multiround_mae: 35.4, ho_pp_acrossgame_mae: 46.4,
     },
   },
 };

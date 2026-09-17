@@ -368,6 +368,8 @@
     font-size: 0.92rem;
     text-align: center;
   }
+  .hero .nav-internal { font-size: 0.85rem; margin: 0.35rem 0 0.2rem; }
+  .hero .nav-internal a { color: var(--accent); text-decoration: none; }
   .hero .nav-internal a:hover { text-decoration: underline; }
   .hero-version-toggle {
     position: absolute;
@@ -436,6 +438,7 @@
 <div class="hero">
   <h1>BehaviorBench Leaderboards</h1>
   <p class="subtitle">A benchmark for foundation models on behavioral-science tasks, evaluated at the individual and distributional levels.</p>
+  <p class="nav-internal"><a href="verbalized.html">Verbalized vs. simulated distributions &rarr;</a> &nbsp;&middot;&nbsp; <a href="methodology.html">Ranking methodology &rarr;</a></p>
   <div class="action-bar" aria-label="External resources">
     <a class="action-btn" href="https://arxiv.org/abs/2606.24162" target="_blank" rel="noopener noreferrer" title="BehaviorBench paper on arXiv">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
@@ -494,6 +497,7 @@
 
 <div class="legend" id="legend">
   <strong>Ranking:</strong> <span id="legend-method">Mean Win Rate (HELM-style).</span> <a href="methodology.html" style="color:var(--accent);">See full methodology &rarr;</a><br>
+  <strong>See also:</strong> <a href="verbalized.html" style="color:var(--accent);">Verbalized vs. simulated distributions &rarr;</a>, the distributional tasks scored without sampling.<br>
   <strong>Tags:</strong> the <span class="family-tag effort" style="margin-left:0;">reasoning: high</span> chip next to a model name shows the <code>reasoning_effort</code> used for evaluation. It applies only to reasoning models.
 </div>
 
@@ -595,7 +599,7 @@ document.getElementById("copy-bibtex").addEventListener("click", e => {
 });
 </script>
 
-<script src="data.js?v=3"></script>
+<script src="data.js?v=4"></script>
 <script>
 // Public version: single dataset, Be.FM is always the 5-run mean.
 const DATASETS = {
