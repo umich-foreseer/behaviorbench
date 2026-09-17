@@ -74,6 +74,12 @@ test("Be.FM-1.5 rows read the five-run mean, as the public leaderboard does", ()
 });
 
 test("simulated cells are the main leaderboard's cells with Push/Pull merged", () => {
+  // The public data.js ships no parse-failure flags; if one ever lands on a
+  // row used here, vdSimulated drops that cell from the ranking like the main
+  // page does, and this assertion is the place to notice.
+  for (const m of VD.models) {
+    assert.deepEqual(Object.keys((LB.flags || {})[m.simId] || {}), [], `flag on ${m.simId}`);
+  }
   for (const r of TABLE.rows) {
     const row = LB.results[r.simId];
     for (const t of VD.tasks) {
@@ -107,15 +113,23 @@ test("win rates equal an independent pairwise count, lower distance wins", () =>
   }
 });
 
-test("ranks are competition ranks of the mean win rate", () => {
+test("ranks are competition ranks of the mean win rate, and equal means share a rank", () => {
+  const EPS = ctx.VD_TIE_EPS;
   for (const [wrKey, rankKey] of [["verbWR", "verbRank"], ["simWR", "simRank"]]) {
     const sorted = [...TABLE.rows].sort((a, b) => b[wrKey] - a[wrKey]);
-    sorted.forEach((r, i) => {
-      const better = sorted.filter(o => o[wrKey] > r[wrKey]).length;
+    sorted.forEach(r => {
+      const better = sorted.filter(o => o[wrKey] > r[wrKey] + EPS).length;
       assert.equal(r[rankKey], better + 1, `${rankKey} ${r.id}`);
     });
     assert.equal(sorted[0][rankKey], 1);
+    // Mean win rates are exact rationals; float summation order must not split a tie.
+    for (const a of TABLE.rows) for (const b of TABLE.rows) {
+      if (Math.abs(a[wrKey] - b[wrKey]) < EPS) assert.equal(a[rankKey], b[rankKey], `${rankKey} tie ${a.id} vs ${b.id}`);
+    }
   }
+  // The data has genuine ties today; the page must show them as ties.
+  const tied = TABLE.rows.filter(a => TABLE.rows.some(b => b !== a && Math.abs(a.simWR - b.simWR) < EPS));
+  assert.ok(tied.length >= 2, "expected at least one tied pair on the simulated side");
   // Default order is by verbalized rank.
   TABLE.rows.forEach((r, i) => {
     if (i > 0) assert.ok(r.verbRank >= TABLE.rows[i - 1].verbRank);
@@ -153,7 +167,11 @@ test("no count the page computes is typed into its source", () => {
     assert.ok(!new RegExp(`\\b${n} (models|conditions)\\b`).test(HTML), `literal "${n}" in verbalized.html`);
   }
   assert.ok(!/\b9\/8\/9\b/.test(HTML), "literal games-per-task in verbalized.html");
-  assert.ok(!/\bfive repeats\b|\b5 repeats\b/.test(HTML), "literal repeat count in verbalized.html");
+  assert.ok(!/\b(five|5) repeats\b/.test(HTML), "literal repeat count in verbalized.html");
+  assert.ok(!/\b(three|3) economic-game tasks\b/.test(HTML), "literal game-task count in verbalized.html");
+  assert.ok(!/\b(five|5)-run mean\b/.test(HTML), "literal Be.FM run count in verbalized.html");
+  assert.equal(SUMMARY.nGameTasks, VD.tasks.filter(t => t.family === "games").length);
+  assert.equal(SUMMARY.befmRuns, 5, "the five-run sibling should be read off data.js");
 });
 
 test("house style: no em dashes on the new page", () => {

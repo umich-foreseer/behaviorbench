@@ -11,8 +11,10 @@
 // Simulated value for one task, with Push/Pull merged into the three game
 // tasks the way index.html's applyMergePushpull does:
 // (avg * n + pushpull) / (n + 1). The main leaderboard shows exactly this.
-function vdSimulated(row, task) {
+function vdSimulated(row, task, flags) {
   if (!row) return null;
+  // The main page keeps a flagged cell out of its ranking (rankVal); so do we.
+  if (flags && (flags[task.sim_scenario] != null || (task.sim_pushpull && flags[task.sim_pushpull] != null))) return null;
   const base = row[task.sim_scenario];
   if (base == null) return null;
   if (!task.sim_pushpull) return base;
@@ -51,7 +53,11 @@ function vdMean(values) {
   return v.reduce((a, b) => a + b, 0) / v.length;
 }
 
-// Competition ranking (1, 2, 2, 4) of a higher-is-better score.
+// Competition ranking (1, 2, 2, 4) of a higher-is-better score. Mean win
+// rates are exact rationals (multiples of 1/(2(N-1)) averaged over the tasks)
+// but reach here as float sums in task order, so two equal means can differ
+// in the last bit; scores within VD_TIE_EPS share a rank.
+var VD_TIE_EPS = 1e-9;  // var, not const: node:vm exposes it to the tests as a global
 function vdRanks(scoreById) {
   const out = {};
   Object.keys(scoreById).forEach(id => { out[id] = null; });
@@ -60,7 +66,8 @@ function vdRanks(scoreById) {
     .map(id => ({ id, s: scoreById[id] }))
     .sort((a, b) => b.s - a.s);
   entries.forEach((e, i) => {
-    out[e.id] = (i > 0 && entries[i - 1].s === e.s) ? out[entries[i - 1].id] : i + 1;
+    const tied = i > 0 && Math.abs(entries[i - 1].s - e.s) < VD_TIE_EPS;
+    out[e.id] = tied ? out[entries[i - 1].id] : i + 1;
   });
   return out;
 }
@@ -80,7 +87,7 @@ function vdBuild(LB, VD) {
     tasks.forEach(t => {
       const v = VD.results[m.id] ? VD.results[m.id][t.id] : null;
       verb[t.id] = v == null ? null : v;
-      sim[t.id] = vdSimulated(LB.results[m.simId], t);
+      sim[t.id] = vdSimulated(LB.results[m.simId], t, LB.flags && LB.flags[m.simId]);
     });
     return {
       id: m.id, simId: m.simId, name: m.name, family: m.family,
@@ -141,6 +148,14 @@ function vdSummary(LB, VD, table) {
     // Rows the main leaderboard prints: the "_5runs" siblings are collapsed
     // into their base row there, so they are not separate models.
     mainModels: LB.models.filter(m => !/_5runs$/.test(m.id)).length,
+    nGameTasks: games.length,
+    // How many simulated runs the Be.FM-1.5 rows average, read off the
+    // "(5 runs, mean)" sibling's name in data.js rather than typed.
+    befmRuns: (() => {
+      const sib = LB.models.find(m => /_5runs$/.test(m.id));
+      const m = sib && sib.name.match(/\((\d+)\s*runs?/i);
+      return m ? Number(m[1]) : null;
+    })(),
     fullyFlagged: table.rows
       .filter(r => table.tasks.every(t => r.flags[t.id] === 1))
       .map(r => r.name),
@@ -151,5 +166,5 @@ function vdSummary(LB, VD, table) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { vdSimulated, vdTaskWinRates, vdMean, vdRanks, vdRound2, vdBuild, vdSummary };
+  module.exports = { vdSimulated, vdTaskWinRates, vdMean, vdRanks, vdRound2, vdBuild, vdSummary, VD_TIE_EPS };
 }

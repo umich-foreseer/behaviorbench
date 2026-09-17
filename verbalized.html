@@ -224,7 +224,13 @@ function familyTag(row) {
 }
 
 function pct(v) {
-  return v >= 0.995 || v === 0 ? Math.round(v * 100) + "%" : (v * 100).toFixed(1) + "%";
+  return v === 1 ? "100%" : (v * 100).toFixed(1) + "%";
+}
+
+// Small counts read better as words in prose; larger ones stay digits.
+function numWord(n) {
+  const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+  return n != null && n >= 0 && n < words.length ? words[n] : String(n);
 }
 
 function renderIntro() {
@@ -276,7 +282,7 @@ function renderTable() {
 
   rows.forEach(r => {
     html += `<tr class="${r.family === "befm" ? "befm" : ""}">
-      <td class="sc-model"><span class="model-name">${esc(r.name)}</span>${familyTag(r)}</td>
+      <td class="sc-model" data-sort-val="${esc(r.name)}"><span class="model-name">${esc(r.name)}</span>${familyTag(r)}</td>
       <td class="col-side" data-sort-val="${r.verbRank ?? ""}">${r.verbRank ?? '<span class="cell-missing">&ndash;</span>'}</td>
       <td class="col-side" data-sort-val="${r.verbWR ?? ""}">${wrBar(r.verbWR)}${fmtWR(r.verbWR)}</td>
       <td class="col-side" data-sort-val="${r.simRank ?? ""}">${r.simRank ?? '<span class="cell-missing">&ndash;</span>'}</td>
@@ -323,20 +329,21 @@ function renderTable() {
 function renderLegend() {
   const s = SUMMARY;
   const flagged = s.fullyFlagged.length
-    ? ` ${s.fullyFlagged.join(" and ")} never produced a readable distribution, so ${s.fullyFlagged.length === 1 ? "its row sits" : "their rows sit"} exactly on the Uniform distribution reference row.`
+    ? ` ${s.fullyFlagged.map(esc).join(" and ")} never produced a readable distribution, so ${s.fullyFlagged.length === 1 ? "its row sits" : "their rows sit"} exactly on the Uniform distribution reference row.`
     : "";
   const reasoning = s.nonDefaultReasoning.length
-    ? ` except ${s.nonDefaultReasoning.join(", ")}, which ran with that reasoning effort in both settings`
+    ? ` except ${s.nonDefaultReasoning.map(esc).join(", ")}, which ran with that reasoning effort in both settings`
     : "";
+  const befmRuns = s.befmRuns != null ? `${numWord(s.befmRuns)}-run mean` : "multi-run mean";
   document.getElementById("legend").innerHTML = `
     <strong>How to read this table</strong>
     <ol>
       <li><strong>One pool for both columns.</strong> Both mean win rates are computed over the ${s.nModels} models on this page and its ${s.nTasks} tasks,
         so a model's simulated rank here can differ from its rank on the main leaderboard's Distributional tab, whose pool is ${s.mainModels} models.
         The simulated cells themselves are the main leaderboard's cells.</li>
-      <li><strong>Push/Pull is inside the game tasks.</strong> The three economic-game tasks average ${s.gamesPerTask} games including Push/Pull in both settings:
+      <li><strong>Push/Pull is inside the game tasks.</strong> The ${numWord(s.nGameTasks)} economic-game tasks average ${s.gamesPerTask} games including Push/Pull in both settings:
         the main leaderboard merges Push/Pull into these cells, and the verbalized runs contain Push/Pull as one of their conditions.</li>
-      <li><strong>Runs.</strong> Verbalized numbers are one run with ${s.repeats} repeats per condition. Simulated numbers for Be.FM-1.5 are the five-run mean shown on the
+      <li><strong>Runs.</strong> Verbalized numbers are one run with ${s.repeats} repeats per condition. Simulated numbers for Be.FM-1.5 are the ${befmRuns} shown on the
         main leaderboard; every other model is a single run. Reasoning settings are each provider's default in both settings (the main leaderboard's chips name those defaults)${reasoning}.</li>
       <li><strong>Failed parses.</strong> A verbalized answer that cannot be read as a distribution is scored as the uniform distribution over the answer space.
         In the task details, a cell with any such answers carries a <sup style="color:#b45309">&dagger;</sup>; hover it for the rate.${flagged}</li>
